@@ -19,6 +19,13 @@ pair<int, int> conversion_21(pair<int, int>);
 vector<pair<int, int>> get_middle_points(pair<int, int>, pair<int, int>);
 bool terminal_test(int);
 
+struct gameState
+{
+	vector<gameState*> childState;
+	string selfState;
+	string revertParent;
+};
+
 class Game
 {
 public:
@@ -43,6 +50,7 @@ public:
 	//vector <pair<int, int>> blackmarker_location;
 	unordered_map<string, int> board_state;
 	vector<Game*> all_children;
+	vector<struct gameState*> all_children_5;
 	/* Key: (x,y) stored as x*100 +y; Value: White ring : whitering_location vector index [0, 4], Black ring: blackring_location vector index [5, 9]
 	White marker: -1, Black marker: -2, Empty space: -3 OR not present in board_state, */
 	unordered_map<int, vector<pair<int, int>>> all_moves;
@@ -78,8 +86,11 @@ public:
 	string generate_random_move(int);
 	string generate_minimax1_move(int); 
 	void move_placering(int, pair<int, int>); //new coordinate 
+	void undo_move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc);
 	void move_movering(int, pair<int, int>, pair<int, int>); //new coordinate
+	void undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int, int> new_loc);
 	void move_removemarkers(int, pair<int, int>, pair<int, int>); //new coordinate
+	void undo_move_removering(int player, pair<int ,int> location, int ring_id);
 	void move_removering(int, pair<int, int>); //new coordinate 
 	double get_score();
 };
