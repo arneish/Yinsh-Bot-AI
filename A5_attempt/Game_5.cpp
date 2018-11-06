@@ -1205,17 +1205,12 @@ void Game::move_placering(int player, pair<int, int> location)
 void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc)
 {
 	//location change & drop new marker:
-	//cerr << "inside move_moverring\n ";
 	string old_loc_string = to_string(old_loc.first) + '$' + to_string(old_loc.second);
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
-	//cerr << "old_loc_string::new_loc_string=" << old_loc_string << " " << new_loc_string << "\n";
 	int ring_ID = board_state[new_loc_string];
 	board_state[new_loc_string] = -3;
-	//cerr<<"old loc string:"<<old_loc_string<<"\n";
-	//cerr<<"ring_ID:"<<ring_ID<<"\n";
 	assert(ring_ID >= 0 && ring_ID <= 9);
 	board_state[old_loc_string] = ring_ID;
-	//cerr<<"board_state[new_loc string]:"<<board_state[new_loc_string]<<"\n";
 	if (player == 1)
 	{
 		blackring_location_map[ring_ID - 5] = old_loc;
@@ -1224,36 +1219,33 @@ void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int>
 	}
 	else
 	{
-		assert(player == -1);
-		assert(ring_ID >= 0 && ring_ID <= 4);
+		assert(player==-1 && ring_ID >= 0 && ring_ID <= 4);
 		whitering_location_map[ring_ID] = old_loc;
 		//board_state[old_loc_string] = -1; //dropping white marker
 		whitemarker_number -= 1;
 	}
 	//get all coordinates in the straight line and invert markers:
 	vector<pair<int, int>> mid_points = get_correct_middle_points(old_loc, new_loc);
-	//cerr << "old loc:" << old_loc_string << "::new_loc:" << new_loc_string << "::midpoints size:" << mid_points.size() << "\n";
 	for (const auto &coordinate : mid_points)
 	{
 		string coordinate_string = to_string(coordinate.first) + '$' + to_string(coordinate.second);
-		if (board_state[coordinate_string] == -1)
+		if (board_state[coordinate_string] == WHITE_MARKER)
 		{
 			blackmarker_number += 1;
 			whitemarker_number -= 1;
-			board_state[coordinate_string] = -2;
+			board_state[coordinate_string] = BLACK_MARKER;
 		}
-		else if (board_state[coordinate_string] == -2)
+		else if (board_state[coordinate_string] == BLACK_MARKER)
 		{
 			blackmarker_number -= 1;
 			whitemarker_number += 1;
-			board_state[coordinate_string] = -1;
+			board_state[coordinate_string] = WHITE_MARKER;
 		}
 		else
 		{
-			board_state[coordinate_string] = -3;
+			board_state[coordinate_string] = EMPTY_SPACE;
 		}
 	}
-	//cerr << "exiting move_movering\n";
 }
 
 void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc)
@@ -1313,12 +1305,11 @@ void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_
 void Game::undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int, int> new_loc)
 {
 	//5 coordinates including old_loc and new_loc
-	//cerr<<"inside move_removemarkers\n";
 	int color = 0;
-	if (player ==1)
-		color = -2;
+	if (player == POKER_FACE)
+		color = BLACK_MARKER;
 	else 
-		color = -1;
+		color = WHITE_MARKER;
 	vector<pair<int, int>> mid_points = get_correct_middle_points(old_loc, new_loc);
 	board_state[to_string(old_loc.first) + '$' + to_string(old_loc.second)] = color;
 	board_state[to_string(new_loc.first) + '$' + to_string(new_loc.second)] = color;
@@ -1326,7 +1317,7 @@ void Game::undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int,
 	{
 		board_state[to_string(coordinate.first) + '$' + to_string(coordinate.second)] = color;
 	}
-	if (player == 1)
+	if (player == POKER_FACE)
 	{
 		blackmarker_number += 5;
 	}
@@ -1334,7 +1325,6 @@ void Game::undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int,
 	{
 		whitemarker_number += 5;
 	}
-	//cerr<<"exiting move_removemarkers\n";
 }
 
 void Game::move_removemarkers(int player, pair<int, int> old_loc, pair<int, int> new_loc)
@@ -1359,31 +1349,25 @@ void Game::move_removemarkers(int player, pair<int, int> old_loc, pair<int, int>
 	//cerr<<"exiting move_removemarkers\n";
 }
 
-
 void Game::undo_move_removering(int player, pair<int ,int> location, int ring_id)
 {
-	//cerr<<"called move_removering for:"<<player<<" for location:"<<location.first<<","<<location.second<<"\n";
 	string location_string = to_string(location.first) + '$' + to_string(location.second);
 	board_state[location_string] = ring_id;
-	if (player == 1)
+	if (player == POKER_FACE)
 	{
-		assert(ring_id >= 5 && ring_id <= 9);
-		assert(blackring_location_map.count(ring_id - 5));
+		assert(ring_id >= 5 && ring_id <= 9 && blackring_location_map.count(ring_id - 5));
 		blackring_location_map[ring_id - 5]=location;
 		//blackring_location.erase(blackring_location.begin() + ring_id - 5);
 		rings_onboard_black += 1;
-		//cerr<<"\nrings_onboardblack:"<<rings_onboard_black<<"\n";
 	}
 	else
 	{
-		assert(player == -1);
+		assert(player == OPPONENT);
 		whitering_location_map[ring_id]=location;
 		//whitering_location.erase(whitering_location.begin() + ring_id);
 		rings_onboard_white += 1;
 	}
-	//cerr<<"exiting move_removering\n";
 }
-
 
 void Game::move_removering(int player, pair<int, int> location)
 {
@@ -1610,6 +1594,7 @@ void tree_create_efficient(Game *parent, int depth)
 
 void tree_create_5(struct gameState *currentState, int depth)
 {
+	
 }
 
 void tree_create_5_init(Game *parent, int depth)

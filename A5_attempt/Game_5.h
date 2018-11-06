@@ -10,6 +10,12 @@
 #include<ctime>
 
 using namespace std;
+#define POKER_FACE 1
+#define OPPONENT -1
+
+#define WHITE_MARKER -1
+#define BLACK_MARKER -2
+#define EMPTY_SPACE -3
 
 vector<string> split_string(string);
 vector<int> get_extreme_L(pair<int, int>);
