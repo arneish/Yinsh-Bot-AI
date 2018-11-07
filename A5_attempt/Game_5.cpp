@@ -990,6 +990,17 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			move_removering(player, coordinates_ring_remove);
 			i += 9;
 			break;
+		case UNDO_MR_REMOVAL:
+			/* "ZS C C ZE C C Y C C"
+			Undo Move ZS-ZE and Replace ring at Y*/
+			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
+			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
+			coordinates_ring_remove = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
+			int ring_id = board_state[to_string(coordinates_ring_remove.first) + '$' + to_string(coordinates_ring_remove.second)];
+			undo_move_removemarkers(player, coordinates_old, coordinates_new);
+			undo_move_removering(player, coordinates_ring_remove, ring_id);
+			i += 9;
+			break;
 		default:
 			//cerr << "No match in parse switch case" << endl;
 			break;
@@ -1121,15 +1132,18 @@ string Game::generate_random_move(int player)
 	}
 }
 
+void Game::undo_execute_findfive_ring(int player, vector<pair<int, int>> &result_coordinates, pair<int, int> ring_loc, int ring_id)
+{
+	undo_move_removemarkers(player, result_coordinates[0], result_coordinates[4]);
+	pair<int, int> X_loc_hex = conversion_21(ring_loc);
+	undo_move_removering(player, ring_loc, ring_id);
+	pair<int, int> ZS_loc_hex = conversion_21(result_coordinates[0]);
+	pair<int, int> ZE_loc_hex = conversion_21(result_coordinates[4]);
+}
+
 string Game::execute_findfive_ring(int player, vector<pair<int, int>> &result_coordinates, pair<int, int> ring_loc)
 {
 	string move_string;
-	//int color = board_state[to_result_coordinates[0]];
-	//assert((player==-1&&color==-1) ||(player==1&&color==-2));
-	// for (int i = 1;i <5; i++)
-	// {
-	// 	assert(board_state[result_coordinates[i]]==color);
-	// }
 	move_removemarkers(player, result_coordinates[0], result_coordinates[4]);
 	pair<int, int> X_loc_hex = conversion_21(ring_loc);
 	move_removering(player, ring_loc);
@@ -1219,7 +1233,7 @@ void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int>
 	}
 	else
 	{
-		assert(player==-1 && ring_ID >= 0 && ring_ID <= 4);
+		assert(player == -1 && ring_ID >= 0 && ring_ID <= 4);
 		whitering_location_map[ring_ID] = old_loc;
 		//board_state[old_loc_string] = -1; //dropping white marker
 		whitemarker_number -= 1;
@@ -1301,14 +1315,13 @@ void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_
 	//cerr << "exiting move_movering\n";
 }
 
-
 void Game::undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int, int> new_loc)
 {
 	//5 coordinates including old_loc and new_loc
 	int color = 0;
 	if (player == POKER_FACE)
 		color = BLACK_MARKER;
-	else 
+	else
 		color = WHITE_MARKER;
 	vector<pair<int, int>> mid_points = get_correct_middle_points(old_loc, new_loc);
 	board_state[to_string(old_loc.first) + '$' + to_string(old_loc.second)] = color;
@@ -1349,21 +1362,21 @@ void Game::move_removemarkers(int player, pair<int, int> old_loc, pair<int, int>
 	//cerr<<"exiting move_removemarkers\n";
 }
 
-void Game::undo_move_removering(int player, pair<int ,int> location, int ring_id)
+void Game::undo_move_removering(int player, pair<int, int> location, int ring_id)
 {
 	string location_string = to_string(location.first) + '$' + to_string(location.second);
 	board_state[location_string] = ring_id;
 	if (player == POKER_FACE)
 	{
 		assert(ring_id >= 5 && ring_id <= 9 && blackring_location_map.count(ring_id - 5));
-		blackring_location_map[ring_id - 5]=location;
+		blackring_location_map[ring_id - 5] = location;
 		//blackring_location.erase(blackring_location.begin() + ring_id - 5);
 		rings_onboard_black += 1;
 	}
 	else
 	{
 		assert(player == OPPONENT);
-		whitering_location_map[ring_id]=location;
+		whitering_location_map[ring_id] = location;
 		//whitering_location.erase(whitering_location.begin() + ring_id);
 		rings_onboard_white += 1;
 	}
@@ -1409,28 +1422,25 @@ double Game::get_score()
 
 string Game::generate_minimax1_move(int player)
 {
+	/* Code modified for A-5 incorporating the new strategy */
 	const clock_t begin_time = clock();
-	if (player == 1)
+	if (player == POKER_FACE)
 	{
-		//cerr<<"Generate MINIMAX:ONE move player::US\n";
+		cerr<<"Generate MINIMAX:ONE move player::POKER_FACE\n";
 		string move_string;
 		if (!InitFiveRing)
 		{
 			//place black rings randomly radially outward
-			move_string = freeloc_ring_init(1);
+			move_string = freeloc_ring_init(POKER_FACE);
 			if (blackring_location_map.size() == 5)
 				InitFiveRing = true;
 			return move_string;
 		}
 		vector<pair<int, int>> result_coordinates;
 		move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
-		if (rings_onboard_black == 2)
-		{
-			return move_string;
-		}
-		//now, call create minimax tree:
-		//compute_all_moves(1);
-		////cerr<<"Calling tree_create\n";
+		
+		/* now, call create minimax tree:
+		cerr<<"Calling tree_create\n";
 		tree_create(this, 0);
 		//tree_create_efficient(this, 0);
 		cerr << "Out of tree_create\n";
@@ -1446,207 +1456,83 @@ string Game::generate_minimax1_move(int player)
 		for (int i = 0; i < this->all_children.size(); i++)
 		{
 			//cerr<<"Child generate action\n"<<this->all_children[i]->generate_action<<"\n\n";
-		}
+		}*/
 		cerr << "Calling Minimax_decision\n";
-		cerr << this->all_children.size() << "\n";
-		string result = minimax_decision(this);
+		struct gameState* rootGameState = new struct gameState;
+		rootGameState->selfState = "";
+		string result = minimax_decision_5(rootGameState, this);
 		move_string += result;
-		//cerr<<"Exiting Minimax decision\n";
+		cerr<<"Exiting Minimax decision\n";
 		cerr << "move_String:" << move_string << "\n";
 		return move_string;
 	}
 	time_remaining_us = time_remaining_us - (float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
-int child_index = -1;
+//int child_index = -1;
 /*
-void tree_create_efficient(Game *parent, int depth)
-{	
-
-	parent->all_children.clear();
+void tree_create_5(struct gameState *currentState, int depth, Game *currentGame)
+{
+	//will be called initially with gameState root, with currentGame configuration
 	if (terminal_test(depth))
 	{
 		return;
 	}
 	int child_depth = depth + 1;
+	vector<pair<int, int>> five_coordinates;
 	if (depth % 2 == 0) //MaxNode
 	{
-		//cerr<<"\n\n\nlocation of black rings: \n";
-		for (int i=0; i<5; i++)
+		for (int i = 0; i < 5; i++) //iterate over all rings potentially
 		{
-			if (!parent->blackring_location_map.count(i)) continue;
-			//cerr<<this->blackring_location_map[i].first<<","<<blackring_location_map[i].second<<";\n";
-		}
-		vector<pair<int, int>> five_coordinates;
-		for (int i = 0; i < 5; i++) //iterate over all rings potentially 
-		{	
-			if (!parent->blackring_location_map.count(i)) continue;
-			vector<pair<int, int>> all_moves_ring=parent->compute_all_moves_ring(parent->blackring_location_map[i]);
+			if (!currentGame->blackring_location_map.count(i))
+				continue;
+			vector<pair<int, int>> all_moves_ring = currentGame->compute_all_moves_ring(currentGame->blackring_location_map[i]);
 			for (int j = 0; j < all_moves_ring.size(); j++)
 			{
-				Game *child = new Game(parent); //definitely no five in a row (yet!)
+				//Game *child = new Game(currentGame); //definitely no five in a row (yet!)
+				struct gameState *child = new struct gameState;
 				child_index++;
-				//cerr<<"parent's:"<<this->blackring_location_map[i].first<<","<<this->blackring_location_map[i].second<<"\n\n";
-				pair<int, int> loc_start_hex = conversion_21(parent->blackring_location_map[i]);
-				child->move_movering(1, parent->blackring_location_map[i], all_moves_ring[j]);
+				pair<int, int> loc_start_hex = conversion_21(currentGame->blackring_location_map[i]);
+				currentGame->move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
 				pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
-				string generate_action_string  = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
-				//cerr<<"gen action:"<<generate_action_string<<"\n";
-				if (child->find_five(five_coordinates) == -2)
+				string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
+
+				if (currentGame->find_five(five_coordinates) == BLACK_MARKER)
 				{
 					for (int k = 0; k < 5; k++)
 					{
-						if (child->blackring_location_map.count(k))
+						if (currentGame->blackring_location_map.count(k))
 						{
-								Game* inner_child = new Game(child);
-								string local_generate_action = generate_action_string + inner_child->execute_findfive_ring(1, five_coordinates, child->blackring_location_map[k]);
-								inner_child->generate_action = local_generate_action;
-								parent->all_children.push_back(inner_child);
-								child_index++;
+							struct gameState *inner_child = new struct gameState;
+							pair<int, int> ring_loc = currentGame->blackring_location_map[k];
+							int ring_id = currentGame->board_state[to_string(ring_loc.first) + '$' + to_string(ring_loc.second)];
+							string local_generate_action = generate_action_string + currentGame->execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc);
+							inner_child->selfState = local_generate_action;
+							//recursively call tree_create_5 on the new struct game_state
+							tree_create_5(inner_child, child_depth, currentGame);
+							//back from Recursion : undo moves made to currentGame
+							currentState->childState.push_back(inner_child);
+							currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
 						}
 					}
 				}
 				else
 				{
-					child->generate_action=generate_action_string;
-					parent->all_children.push_back(child);
+					//child->generate_action = generate_action_string;
+					child->selfState = generate_action_string;
+					//recursively call tree_create_5 on the new struct game_state
+					tree_create_5(child, child_depth, currentGame);
+					//back from Recursion : undo moves made to currentGame
+					currentState->childState.push_back(child);
+					currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
 				}
-				//tree_create(this->all_children[j], child_depth);
 			}
 		}
-		//all children generated. Now, call tree_create on each child in all_children:
-		
-		// for (auto&child: this->all_children)
-		// {
-		// 	//cerr<<"\n\n printing child location of blackr rings\n:";
-		// 	for (auto& loc: child->blackring_location_map)
-		// 		{
-		// 			//cerr<<loc.second.first<<","<<loc.second.second<<"\n";
-		// 		}	
-		// }
-		// for (auto&loc: this->blackring_location_map)
-		// {
-		// 	//cerr<<"parent's:"<<loc.second.first<<","<<loc.second.second<<"\n";
-		// }
-		int counter=0;
-		cerr<<"all size MAX NODE's children:"<<parent->all_children.size()<<"\n";
-		for (auto &child : parent->all_children)
-		{
-			cerr<<counter++<<"/"<<parent->all_children.size()<<"\n";
-			assert(child->all_children.size()==0);
-			//cerr<<"MAX NODE LEVEL size:"<<counter++<<"/"<<parent->all_children.size()<<"::"<<depth<<"\n";
-			tree_create(child,child_depth);
-		}
-		//cerr<<"it broke off!\n";
 	}
-	else //MIN node
-	{
-		vector<pair<int, int>> five_coordinates;
-		for (int i = 0; i < 5; i++) //iterate over all rings potentially 
-		{	
-			if (!parent->whitering_location_map.count(i)) continue;
-			vector<pair<int, int>> all_moves_ring = parent->compute_all_moves_ring(parent->whitering_location_map[i]);
-			cerr<<"MIN all_moves_ring size:"<<all_moves_ring.size()<<"\n";
-			//vector<pair<int, int>> all_moves_ring=parent->all_moves[i];
-			for (int j = 0; j < all_moves_ring.size(); j++)
-			{
-				Game *child = new Game(parent); //definitely no five in a row (yet!)
-				child_index++;
-				pair<int, int> loc_start_hex = conversion_21(child->whitering_location_map[i]);
-				child->move_movering(-1, child->whitering_location_map[i], all_moves_ring[j]);
-				pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
-				string generate_action_string  = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " " + "M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
-				//cerr<<generate_action_string<<"\n";
-				if (child->find_five(five_coordinates) == -1)
-				{
-					for (int k = 0; k < 5; k++)
-					{
-						if (child->whitering_location_map.count(k))
-						{
-							Game* inner_child = new Game(child);
-							string local_generate_action_string = generate_action_string + inner_child->execute_findfive_ring(-1, five_coordinates, child->whitering_location_map[k]);
-							inner_child->generate_action = local_generate_action_string;
-							parent->all_children.push_back(inner_child);
-							child_index++;
-						}
-					}
-				}
-				else
-				{
-					child->generate_action=generate_action_string;
-					parent->all_children.push_back(child);
-				}
-				//tree_create(this->all_children[j], child_depth);
-			}
-		}
-		//all children generated. Now, call tree_create on each child in all_children:
-		cerr<<"MIN NODE:"<<parent->all_children.size()<<"\n";
-		int counter_2=0;
-		for (auto &child : parent->all_children)
-		{
-			child->all_children.clear();
-			//cerr<<"MIN NODE level size:"<<counter_2++<<"/"<<parent->all_children.size()<<"::"<<depth<<"\n";
-			tree_create(child, child_depth);
-		}
+	else
+	{ //MIN node
 	}
 }
-*/
-
-void tree_create_5(struct gameState *currentState, int depth)
-{
-	
-}
-
-void tree_create_5_init(Game *parent, int depth)
-{
-	/*this function is only for level-one children generation*/
-	parent->all_children_5.clear();
-	int child_depth = depth + 1;
-	vector<pair<int, int>> five_coordinates;
-	for (int i = 0; i < 5; i++) //iterate over all rings potentially
-	{
-		if (!parent->blackring_location_map.count(i))
-			continue;
-		vector<pair<int, int>> all_moves_ring = parent->compute_all_moves_ring(parent->blackring_location_map[i]);
-		for (int j = 0; j < all_moves_ring.size(); j++)
-		{
-			//Game *child = new Game(parent); //definitely no five in a row (yet!)
-			struct gameState* child = new struct gameState; 
-			child_index++;
-			pair<int, int> loc_start_hex = conversion_21(parent->blackring_location_map[i]);
-			parent->move_movering(1, parent->blackring_location_map[i], all_moves_ring[j]);
-			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
-			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
-			
-			if (parent->find_five(five_coordinates) == -2)
-			{
-				for (int k = 0; k < 5; k++)
-				{
-					if (child->blackring_location_map.count(k))
-					{
-						Game *inner_child = new Game(child);
-						string local_generate_action = generate_action_string + inner_child->execute_findfive_ring(1, five_coordinates, child->blackring_location_map[k]);
-						inner_child->generate_action = local_generate_action;
-						parent->all_children.push_back(inner_child);
-						child_index++;
-					}
-				}
-			}
-			else
-			{
-				child->generate_action = generate_action_string;
-				parent->all_children.push_back(child);
-			}
-		}
-	}
-	int counter = 0;
-	for (auto &child : parent->all_children)
-	{
-		assert(child->all_children.size() == 0);
-		tree_create(child, child_depth);
-	}
-}
-
 void tree_create(Game *parent, int depth)
 {
 	parent->all_children.clear();
@@ -1749,7 +1635,231 @@ void tree_create(Game *parent, int depth)
 		}
 	}
 }
+*/
+string minimax_decision_5(struct gameState *currentState, Game *parent)
+{
+	string selected_action;
+	double v = max_value_5(currentState, parent, 0, -DBL_MAX, DBL_MAX);
+	for (auto&child_state: currentState->childState)
+	{
+		if (child_state->score==v)
+		{
+			selected_action = child_state->selfState;
+			parent->execute_move(POKER_FACE, selected_action, 0);
+			break;
+		}
+	}
+	cerr<<"selected action from minimax_decision:"<<selected_action<<"\n";
+	return selected_action;
+}
 
+double max_value_5(struct gameState *currentState, Game *currentGame, int depth, double alpha, double beta)
+{
+	if (terminal_test(depth))
+	{
+		currentGame->score = currentGame->get_score();
+		return currentGame->score;
+	}
+	double v = -DBL_MAX;
+
+	/* Generate children */
+	int child_depth = depth + 1;
+	vector<pair<int, int>> five_coordinates;
+	assert(depth % 2 == 0);		//max_value_5() can only be called for a MaxNode
+	for (int i = 0; i < 5; i++) //iterate over all rings potentially
+	{
+		if (!currentGame->blackring_location_map.count(i))
+			continue;
+		vector<pair<int, int>> all_moves_ring = currentGame->compute_all_moves_ring(currentGame->blackring_location_map[i]);
+		for (int j = 0; j < all_moves_ring.size(); j++)
+		{
+			//Game *child = new Game(currentGame); //definitely no five in a row (yet!)
+			struct gameState *child = new struct gameState;
+			//child_index++;
+			pair<int, int> loc_start_hex = conversion_21(currentGame->blackring_location_map[i]);
+			currentGame->move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
+			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
+
+			if (currentGame->find_five(five_coordinates) == BLACK_MARKER)
+			{
+				for (int k = 0; k < 5; k++)
+				{
+					if (currentGame->blackring_location_map.count(k))
+					{
+						struct gameState *inner_child = new struct gameState;
+						pair<int, int> ring_loc = currentGame->blackring_location_map[k];
+						int ring_id = currentGame->board_state[to_string(ring_loc.first) + '$' + to_string(ring_loc.second)];
+						string local_generate_action = generate_action_string + currentGame->execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc);
+						inner_child->selfState = local_generate_action;
+						currentState->childState.push_back(inner_child);
+
+						//recursively call tree_create_5 on the new struct game_state
+						double minval = min_value_5(inner_child, currentGame, depth + 1, alpha, beta);
+						if (minval > v)
+							v = minval;
+						if (v >= beta)
+						{
+							currentState->score = v;
+							//back from Recursion : undo moves made to currentGame
+							currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
+							return v;
+						}
+						if (v > alpha)
+							alpha = v;
+
+						//back from Recursion : undo moves made to currentGame
+						currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
+					}
+				}
+			}
+			else
+			{
+				//child->generate_action = generate_action_string;
+				child->selfState = generate_action_string;
+				currentState->childState.push_back(child);
+
+				//recursively call tree_create_5 on the new struct game_state
+				double minval = min_value_5(child, currentGame, depth + 1, alpha, beta);
+				if (minval > v)
+					v = minval;
+				if (v >= beta)
+				{
+					currentState->score = v;
+					//back from Recursion : undo moves made to currentGame
+					currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+					return v;
+				}
+				if (v > alpha)
+					alpha = v;
+
+				//back from Recursion : undo moves made to currentGame
+				currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+			}
+		}
+	}
+	currentState->score = v;
+	return v;
+	/*
+	for (int i = 0; i < node->all_children.size(); i++)
+	{
+		double minval = min_value(node->all_children[i], depth + 1, alpha, beta);
+		if (minval > v)
+		{
+			v = minval;
+		}
+		if (v >= beta)
+			return v;
+		if (v > alpha)
+			alpha = v;
+	}*/
+}
+
+double min_value_5(struct gameState *currentState, Game *currentGame, int depth, double alpha, double beta)
+{
+	if (terminal_test(depth))
+	{
+		currentGame->score = currentGame->get_score();
+		return currentGame->score;
+	}
+	double v = DBL_MAX;
+
+	/* Generate children */
+	int child_depth = depth + 1;
+	vector<pair<int, int>> five_coordinates;
+	assert(depth % 2 == 1);		//max_value_5() can only be called for a MaxNode
+	for (int i = 0; i < 5; i++) //iterate over all rings potentially
+	{
+		if (!currentGame->whitering_location_map.count(i))
+			continue;
+		vector<pair<int, int>> all_moves_ring = currentGame->compute_all_moves_ring(currentGame->whitering_location_map[i]);
+		for (int j = 0; j < all_moves_ring.size(); j++)
+		{
+			//Game *child = new Game(currentGame); //definitely no five in a row (yet!)
+			struct gameState *child = new struct gameState;
+			//child_index++;
+			pair<int, int> loc_start_hex = conversion_21(currentGame->whitering_location_map[i]);																																																																															ring_location_map[i]);
+			currentGame->move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
+			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
+			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
+
+			if (currentGame->find_five(five_coordinates) == WHITE_MARKER)
+			{
+				for (int k = 0; k < 5; k++)
+				{
+					if (currentGame->whitering_location_map.count(k))
+					{
+						struct gameState *inner_child = new struct gameState;
+						pair<int, int> ring_loc = currentGame->whitering_location_map[k];
+						int ring_id = currentGame->board_state[to_string(ring_loc.first) + '$' + to_string(ring_loc.second)];
+						string local_generate_action = generate_action_string + currentGame->execute_findfive_ring(OPPONENT, five_coordinates, ring_loc);
+						inner_child->selfState = local_generate_action;
+						currentState->childState.push_back(inner_child);
+
+						//recursively call tree_create_5 on the new struct game_state
+						double maxval = max_value_5(inner_child, currentGame, depth + 1, alpha, beta);
+						if (maxval < v)
+							v = maxval;
+						if (v <= alpha)
+						{
+							currentState->score = v;
+							//back from Recursion : undo moves made to currentGame
+							currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
+							return v;
+						}
+						if (v < beta)
+							beta = v;
+
+						//back from Recursion : undo moves made to currentGame
+						currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
+					}
+				}
+			}
+			else
+			{
+				//child->generate_action = generate_action_string;
+				child->selfState = generate_action_string;
+				currentState->childState.push_back(child);
+
+				//recursively call tree_create_5 on the new struct game_state
+				double maxval = max_value_5(child, currentGame, depth + 1, alpha, beta);
+				if (maxval < v)
+					v = maxval;
+				if (v <= alpha)
+				{
+					currentState->score = v;
+					//back from Recursion : undo moves made to currentGame
+					currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+					return v;
+				}
+				if (v < beta)
+					beta = v;
+
+				//back from Recursion : undo moves made to currentGame
+				currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+			}
+		}
+	}
+
+	/*
+	for (int i = 0; i < node->all_children.size(); i++)
+	{
+		double maxval = max_value(node->all_children[i], (depth + 1), alpha, beta);
+		if (maxval < v)
+		{
+			v = maxval;
+		}
+		if (v <= alpha)
+			return v;
+		if (v < beta)
+			beta = v;
+	}
+	*/
+	currentState->score = v;
+	return v;
+}
+
+/*
 string minimax_decision(Game *parent)
 {
 	string selected_action;
@@ -1815,6 +1925,7 @@ double min_value(Game *node, int depth, double alpha, double beta)
 	node->score = v;
 	return v;
 }
+*/
 
 bool terminal_test(int depth)
 {

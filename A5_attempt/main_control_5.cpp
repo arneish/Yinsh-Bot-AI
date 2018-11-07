@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "Game_5.h"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 		while (true) 
 		{	//cout << "P 1 0" << endl;
 			//string our_move = game_one->generate_random_move(1);
-			string our_move = game_one->generate_minimax1_move(1);
+			string our_move = game_one->generate_minimax1_move(POKER_FACE);
 			//opp_begin_time = clock();
 			cout<<our_move<<endl;
 			cerr<<"\n us_time_left:"<<game_one->time_remaining_us<<"\n";
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		while (true) 
 		{
 			//cout << "P 0 0" << endl;
-			string our_move = game_one->generate_minimax1_move(1);
+			string our_move = game_one->generate_minimax1_move(POKER_FACE);
 			cout<< our_move<<endl;
 			getline(cin, move);
 			game_one->execute_move(-1,move,0);

@@ -17,6 +17,8 @@ using namespace std;
 #define BLACK_MARKER -2
 #define EMPTY_SPACE -3
 
+#define UNDO_MR_REMOVAL 'Z' //Undo Removal of 5 MARKERS in a row and asociated RING ("MR")
+
 vector<string> split_string(string);
 vector<int> get_extreme_L(pair<int, int>);
 pair<int, int> get_extreme_R(pair<int, int>);
@@ -27,9 +29,10 @@ bool terminal_test(int);
 
 struct gameState
 {
+	string selfState; //selfState stores the move (type:string) to be executed on its parent board-state to generate currentState
+	//string revertParent;
 	vector<gameState*> childState;
-	string selfState;
-	string revertParent;
+	double score;
 };
 
 class Game
@@ -48,15 +51,9 @@ public:
 	bool InitFiveRing;
 	string generate_action; //the action sequence to generate it from its parent in a MiniMax Tree
 	double score;
-	//vector <pair<int, int>> whitering_location;
-	//vector <pair<int, int>> blackring_location;
 	unordered_map<int, pair<int, int>> whitering_location_map;
 	unordered_map<int, pair<int, int>> blackring_location_map;
-	//vector <pair<int, int>> whitemarker_location;
-	//vector <pair<int, int>> blackmarker_location;
 	unordered_map<string, int> board_state;
-	vector<Game*> all_children;
-	vector<struct gameState*> all_children_5;
 	/* Key: (x,y) stored as x*100 +y; Value: White ring : whitering_location vector index [0, 4], Black ring: blackring_location vector index [5, 9]
 	White marker: -1, Black marker: -2, Empty space: -3 OR not present in board_state, */
 	unordered_map<int, vector<pair<int, int>>> all_moves;
@@ -82,6 +79,7 @@ public:
 	Game(Game*);
 	void initialiseBoard();
 	string execute_find_five(int, vector<pair<int, int>>&);
+	void undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
 	string execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>);
 	int find_five(vector<pair<int, int>>&); 
 	pair<int,int> find_x(int);
@@ -103,6 +101,7 @@ public:
 
 void tree_create(Game *, int);
 string minimax_decision(Game *);
+string minimax_decision_5(Game*);
 double max_value(Game *node, int depth, double alpha, double beta);
 double min_value(Game *node, int depth, double alpha, double beta);
 
