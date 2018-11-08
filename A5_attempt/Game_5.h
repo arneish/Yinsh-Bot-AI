@@ -17,7 +17,7 @@ using namespace std;
 #define BLACK_MARKER -2
 #define EMPTY_SPACE -3
 
-#define UNDO_MR_REMOVAL 'Z' //Undo Removal of 5 MARKERS in a row and asociated RING ("MR")
+//#define UNDO_MR_REMOVAL 'Z' //Undo Removal of 5 MARKERS in a row and asociated RING ("MR")
 
 vector<string> split_string(string);
 vector<int> get_extreme_L(pair<int, int>);
@@ -99,9 +99,11 @@ public:
 	double get_score();
 };
 
-void tree_create(Game *, int);
-string minimax_decision(Game *);
-string minimax_decision_5(Game*);
-double max_value(Game *node, int depth, double alpha, double beta);
-double min_value(Game *node, int depth, double alpha, double beta);
+//void tree_create(Game *, int);
+//string minimax_decision(Game *);
+string minimax_decision_5(struct gameState*, Game*);
+double max_value_5(struct gameState *currentState, Game *currentGame, int depth, double alpha, double beta);
+double min_value_5(struct gameState *currentState, Game *currentGame,int depth, double alpha, double beta);
+//double max_value(Game *node, int depth, double alpha, double beta);
+//double min_value(Game *node, int depth, double alpha, double beta);
 

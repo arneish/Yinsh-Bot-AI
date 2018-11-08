@@ -990,9 +990,10 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			move_removering(player, coordinates_ring_remove);
 			i += 9;
 			break;
+		/*
 		case UNDO_MR_REMOVAL:
-			/* "ZS C C ZE C C Y C C"
-			Undo Move ZS-ZE and Replace ring at Y*/
+			//"ZS C C ZE C C Y C C"
+			//Undo Move ZS-ZE and Replace ring at Y
 			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
 			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
 			coordinates_ring_remove = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
@@ -1000,7 +1001,7 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			undo_move_removemarkers(player, coordinates_old, coordinates_new);
 			undo_move_removering(player, coordinates_ring_remove, ring_id);
 			i += 9;
-			break;
+			break;*/
 		default:
 			//cerr << "No match in parse switch case" << endl;
 			break;
@@ -1778,7 +1779,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			//Game *child = new Game(currentGame); //definitely no five in a row (yet!)
 			struct gameState *child = new struct gameState;
 			//child_index++;
-			pair<int, int> loc_start_hex = conversion_21(currentGame->whitering_location_map[i]);																																																																															ring_location_map[i]);
+			pair<int, int> loc_start_hex = conversion_21(currentGame->whitering_location_map[i]);
 			currentGame->move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
 			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
 			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
