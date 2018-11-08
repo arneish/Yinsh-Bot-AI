@@ -1371,16 +1371,17 @@ void Game::undo_move_removering(int player, pair<int, int> location, int ring_id
 {
 	string location_string = to_string(location.first) + '$' + to_string(location.second);
 	board_state[location_string] = ring_id;
+	cerr<<"undo_move_removering ring_id:"<<ring_id<<" player:"<<player<<"\n";
 	if (player == POKER_FACE)
 	{
-		assert(ring_id >= 5 && ring_id <= 9 && blackring_location_map.count(ring_id - 5));
+		assert(ring_id >= 5 && ring_id <= 9);
 		blackring_location_map[ring_id - 5] = location;
 		//blackring_location.erase(blackring_location.begin() + ring_id - 5);
 		rings_onboard_black += 1;
 	}
 	else
 	{
-		assert(player == OPPONENT);
+		assert(player == OPPONENT && ring_id>=0 && ring_id<=4);
 		whitering_location_map[ring_id] = location;
 		//whitering_location.erase(whitering_location.begin() + ring_id);
 		rings_onboard_white += 1;
@@ -1392,8 +1393,8 @@ void Game::move_removering(int player, pair<int, int> location)
 	//cerr<<"called move_removering for:"<<player<<" for location:"<<location.first<<","<<location.second<<"\n";
 	string location_string = to_string(location.first) + '$' + to_string(location.second);
 	int ring_id = board_state[location_string];
-	board_state[location_string] = -3;
-	if (player == 1)
+	board_state[location_string] = EMPTY_SPACE;
+	if (player == POKER_FACE)
 	{
 		assert(ring_id >= 5 && ring_id <= 9);
 		assert(blackring_location_map.count(ring_id - 5));
@@ -1404,7 +1405,7 @@ void Game::move_removering(int player, pair<int, int> location)
 	}
 	else
 	{
-		assert(player == -1);
+		assert(player == OPPONENT && ring_id>=0 && ring_id<=4);
 		whitering_location_map.erase(ring_id);
 		//whitering_location.erase(whitering_location.begin() + ring_id);
 		rings_onboard_white -= 1;
