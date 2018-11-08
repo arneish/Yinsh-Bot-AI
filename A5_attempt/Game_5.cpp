@@ -1220,13 +1220,15 @@ void Game::move_placering(int player, pair<int, int> location)
 void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc)
 {
 	//location change & drop new marker:
+	cerr<<"undo_move_movering called:"<<old_loc.first<<","<<old_loc.second<<"::"<<new_loc.first<<","<<new_loc.second<<"\n";
 	string old_loc_string = to_string(old_loc.first) + '$' + to_string(old_loc.second);
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
 	int ring_ID = board_state[new_loc_string];
-	board_state[new_loc_string] = -3;
+	cerr<<"ring_ID in undo_move_movering:"<<ring_ID<<" PLAYER:"<<player<<"\n";
+	board_state[new_loc_string] = EMPTY_SPACE;
 	assert(ring_ID >= 0 && ring_ID <= 9);
 	board_state[old_loc_string] = ring_ID;
-	if (player == 1)
+	if (player == POKER_FACE)
 	{
 		blackring_location_map[ring_ID - 5] = old_loc;
 		//board_state[old_loc_string] = -2; //dropping black marker
@@ -1234,7 +1236,7 @@ void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int>
 	}
 	else
 	{
-		assert(player == -1 && ring_ID >= 0 && ring_ID <= 4);
+		assert(player == OPPONENT && ring_ID >= 0 && ring_ID <= 4);
 		whitering_location_map[ring_ID] = old_loc;
 		//board_state[old_loc_string] = -1; //dropping white marker
 		whitemarker_number -= 1;
@@ -1266,7 +1268,7 @@ void Game::undo_move_movering(int player, pair<int, int> old_loc, pair<int, int>
 void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc)
 {
 	//location change & drop new marker:
-	cerr << "inside move_moverring\n ";
+	cerr << "inside move_moverring PLAYER:"<<player<<" OLD_LOC:"<<old_loc.first<<","<<old_loc.second<<" "<<" NEW_LOC:"<<new_loc.first<<","<<new_loc.second<<"\n";
 	string old_loc_string = to_string(old_loc.first) + '$' + to_string(old_loc.second);
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
 	cerr << "old_loc_string::new_loc_string=" << old_loc_string << " " << new_loc_string << "\n";
@@ -1276,18 +1278,18 @@ void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_
 	assert(ring_ID >= 0 && ring_ID <= 9);
 	board_state[new_loc_string] = ring_ID;
 	//cerr<<"board_state[new_loc string]:"<<board_state[new_loc_string]<<"\n";
-	if (player == 1)
+	if (player == POKER_FACE)
 	{
 		blackring_location_map[ring_ID - 5] = new_loc;
-		board_state[old_loc_string] = -2; //dropping black marker
+		board_state[old_loc_string] = BLACK_MARKER; //dropping black marker
 		blackmarker_number += 1;
 	}
 	else
 	{
-		assert(player == -1);
+		assert(player == OPPONENT);
 		assert(ring_ID >= 0 && ring_ID <= 4);
 		whitering_location_map[ring_ID] = new_loc;
-		board_state[old_loc_string] = -1; //dropping white marker
+		board_state[old_loc_string] = WHITE_MARKER; //dropping white marker
 		whitemarker_number += 1;
 	}
 	//get all coordinates in the straight line and invert markers:
@@ -1296,21 +1298,21 @@ void Game::move_movering(int player, pair<int, int> old_loc, pair<int, int> new_
 	for (const auto &coordinate : mid_points)
 	{
 		string coordinate_string = to_string(coordinate.first) + '$' + to_string(coordinate.second);
-		if (board_state[coordinate_string] == -1)
+		if (board_state[coordinate_string] == WHITE_MARKER)
 		{
 			blackmarker_number += 1;
 			whitemarker_number -= 1;
-			board_state[coordinate_string] = -2;
+			board_state[coordinate_string] = BLACK_MARKER;
 		}
-		else if (board_state[coordinate_string] == -2)
+		else if (board_state[coordinate_string] == BLACK_MARKER)
 		{
 			blackmarker_number -= 1;
 			whitemarker_number += 1;
-			board_state[coordinate_string] = -1;
+			board_state[coordinate_string] = WHITE_MARKER;
 		}
 		else
 		{
-			board_state[coordinate_string] = -3;
+			board_state[coordinate_string] = EMPTY_SPACE;
 		}
 	}
 	//cerr << "exiting move_movering\n";
@@ -1641,6 +1643,7 @@ string minimax_decision_5(struct gameState *currentState, Game *parent)
 {
 	string selected_action;
 	double v = max_value_5(currentState, parent, 0, -DBL_MAX, DBL_MAX);
+	cerr<<"\nmax_value found:"<<v<<"\n";
 	for (auto&child_state: currentState->childState)
 	{
 		if (child_state->score==v)
@@ -1660,6 +1663,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (terminal_test(depth))
 	{
 		currentGame->score = currentGame->get_score();
+		cerr<<"max_value_5 score returning:"<<currentGame->score<<"\n";
 		return currentGame->score;
 	}
 	double v = -DBL_MAX;
@@ -1725,6 +1729,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 
 				//recursively call tree_create_5 on the new struct game_state
 				double minval = min_value_5(child, currentGame, depth + 1, alpha, beta);
+				cerr<<"max_value_5: minval:"<<minval<<" depth:"<<depth<<"\n";
 				if (minval > v)
 					v = minval;
 				if (v >= beta)
@@ -1765,6 +1770,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (terminal_test(depth))
 	{
 		currentGame->score = currentGame->get_score();
+		cerr<<"min_value_5 score returning:"<<currentGame->score<<"\n";
 		return currentGame->score;
 	}
 	double v = DBL_MAX;
@@ -1835,14 +1841,14 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				{
 					currentState->score = v;
 					//back from Recursion : undo moves made to currentGame
-					currentGame->undo_move_movering(OPPONENT, currentGame->blackring_location_map[i], all_moves_ring[j]);
+					currentGame->undo_move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
 					return v;
 				}
 				if (v < beta)
 					beta = v;
 
 				//back from Recursion : undo moves made to currentGame
-				currentGame->undo_move_movering(OPPONENT, currentGame->blackring_location_map[i], all_moves_ring[j]);
+				currentGame->undo_move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
 			}
 		}
 	}
@@ -1862,6 +1868,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	}
 	*/
 	currentState->score = v;
+	cerr<<"RETURNING FROM MINVAL DEPTH:"<<depth<<"\n";
 	return v;
 }
 
