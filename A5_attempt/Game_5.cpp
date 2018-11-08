@@ -361,13 +361,13 @@ void Game::initialiseBoard()
 		int y_min = extreme_y[i].second;
 		for (int j = y_max; j >= y_min; j--)
 		{
-			board_state[to_string(i) + '$' + to_string(j)] = -3;
+			board_state[to_string(i) + '$' + to_string(j)] = EMPTY_SPACE;
 		}
 	}
 	for (int i = 1; i <= 4; i++)
 	{
-		board_state[to_string(-5) + '$' + to_string(i)] = -3;
-		board_state[to_string(5) + '$' + to_string(-i)] = -3;
+		board_state[to_string(-5) + '$' + to_string(i)] = EMPTY_SPACE;
+		board_state[to_string(5) + '$' + to_string(-i)] = EMPTY_SPACE;
 	}
 }
 
@@ -1135,6 +1135,7 @@ string Game::generate_random_move(int player)
 
 void Game::undo_execute_findfive_ring(int player, vector<pair<int, int>> &result_coordinates, pair<int, int> ring_loc, int ring_id)
 {
+	cerr<<"undo_execute_findfive_ring called PLAYER:"<<player<<"\n";
 	undo_move_removemarkers(player, result_coordinates[0], result_coordinates[4]);
 	pair<int, int> X_loc_hex = conversion_21(ring_loc);
 	undo_move_removering(player, ring_loc, ring_id);
@@ -1144,6 +1145,7 @@ void Game::undo_execute_findfive_ring(int player, vector<pair<int, int>> &result
 
 string Game::execute_findfive_ring(int player, vector<pair<int, int>> &result_coordinates, pair<int, int> ring_loc)
 {
+	cerr<<"execute_findfive_ring called PLAYER:"<<player<<"\n";
 	string move_string;
 	move_removemarkers(player, result_coordinates[0], result_coordinates[4]);
 	pair<int, int> X_loc_hex = conversion_21(ring_loc);
@@ -1677,14 +1679,15 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 		if (!currentGame->blackring_location_map.count(i))
 			continue;
 		vector<pair<int, int>> all_moves_ring = currentGame->compute_all_moves_ring(currentGame->blackring_location_map[i]);
-		cerr<<"All moves ring size:"<<all_moves_ring.size()<<"\n";
+		cerr<<"All moves ring (Max_value_5) size:"<<all_moves_ring.size()<<"\n";
 		for (int j = 0; j < all_moves_ring.size(); j++)
 		{
 			//Game *child = new Game(currentGame); //definitely no five in a row (yet!)
 			struct gameState *child = new struct gameState;
 			//child_index++;
 			pair<int, int> loc_start_hex = conversion_21(currentGame->blackring_location_map[i]);
-			currentGame->move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+			pair<int, int> original_ring_loc = currentGame->blackring_location_map[i];
+			currentGame->move_movering(POKER_FACE, original_ring_loc, all_moves_ring[j]);
 			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
 			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
 
@@ -1704,6 +1707,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 
 						//recursively call tree_create_5 on the new struct game_state
 						double minval = min_value_5(inner_child, currentGame, depth + 1, alpha, beta);
+						cerr<<"minval:"<<minval<<"\n";
 						if (minval > v)
 							v = minval;
 						if (v >= beta)
@@ -1711,6 +1715,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 							currentState->score = v;
 							//back from Recursion : undo moves made to currentGame
 							currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
+							currentGame->undo_move_movering(POKER_FACE, original_ring_loc, all_moves_ring[j]);
 							return v;
 						}
 						if (v > alpha)
@@ -1736,15 +1741,13 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				{
 					currentState->score = v;
 					//back from Recursion : undo moves made to currentGame
-					currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
+					currentGame->undo_move_movering(POKER_FACE, original_ring_loc, all_moves_ring[j]);
 					return v;
 				}
 				if (v > alpha)
 					alpha = v;
-
-				//back from Recursion : undo moves made to currentGame
-				currentGame->undo_move_movering(POKER_FACE, currentGame->blackring_location_map[i], all_moves_ring[j]);
 			}
+			currentGame->undo_move_movering(POKER_FACE, original_ring_loc, all_moves_ring[j]);
 		}
 	}
 	currentState->score = v;
@@ -1790,7 +1793,8 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			struct gameState *child = new struct gameState;
 			//child_index++;
 			pair<int, int> loc_start_hex = conversion_21(currentGame->whitering_location_map[i]);
-			currentGame->move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
+			pair<int, int> original_ring_loc = currentGame->whitering_location_map[i];
+			currentGame->move_movering(OPPONENT, original_ring_loc, all_moves_ring[j]);
 			pair<int, int> loc_end_hex = conversion_21(all_moves_ring[j]);
 			string generate_action_string = "S " + to_string(loc_start_hex.first) + " " + to_string(loc_start_hex.second) + " M " + to_string(loc_end_hex.first) + " " + to_string(loc_end_hex.second) + " ";
 
@@ -1817,6 +1821,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 							currentState->score = v;
 							//back from Recursion : undo moves made to currentGame
 							currentGame->undo_execute_findfive_ring(OPPONENT, five_coordinates, ring_loc, ring_id);
+							currentGame->undo_move_movering(OPPONENT, original_ring_loc, all_moves_ring[j]);
 							return v;
 						}
 						if (v < beta)
@@ -1841,15 +1846,13 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				{
 					currentState->score = v;
 					//back from Recursion : undo moves made to currentGame
-					currentGame->undo_move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
+					currentGame->undo_move_movering(OPPONENT, original_ring_loc, all_moves_ring[j]);
 					return v;
 				}
 				if (v < beta)
 					beta = v;
-
-				//back from Recursion : undo moves made to currentGame
-				currentGame->undo_move_movering(OPPONENT, currentGame->whitering_location_map[i], all_moves_ring[j]);
 			}
+			currentGame->undo_move_movering(OPPONENT, original_ring_loc, all_moves_ring[j]);
 		}
 	}
 
