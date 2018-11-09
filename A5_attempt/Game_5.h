@@ -53,7 +53,7 @@ public:
 	double score;
 	unordered_map<int, pair<int, int>> whitering_location_map;
 	unordered_map<int, pair<int, int>> blackring_location_map;
-	unordered_map<string, int> board_state;
+	vector<vector<int>> board_state;
 	/* Key: (x,y) stored as x*100 +y; Value: White ring : whitering_location vector index [0, 4], Black ring: blackring_location vector index [5, 9]
 	White marker: -1, Black marker: -2, Empty space: -3 OR not present in board_state, */
 	unordered_map<int, vector<pair<int, int>>*> all_moves;
