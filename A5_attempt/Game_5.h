@@ -89,13 +89,13 @@ public:
 	string freeloc_ring_init(int); 
 	string generate_random_move(int);
 	string generate_minimax1_move(int); 
-	void move_placering(int, pair<int, int>); //new coordinate 
+	void move_placering(const int&, pair<int, int>); //new coordinate 
 	void undo_move_movering(const int& player, pair<int, int> old_loc, pair<int, int> new_loc);
 	void move_movering(const int&, pair<int, int>, pair<int, int>); //new coordinate
 	void undo_move_removemarkers(const int& player, pair<int, int> old_loc, pair<int, int> new_loc);
 	void move_removemarkers(const int&, pair<int, int>, pair<int, int>); //new coordinate
-	void undo_move_removering(int player, pair<int ,int> location, int ring_id);
-	void move_removering(int, pair<int, int>); //new coordinate 
+	void undo_move_removering(const int&, pair<int ,int> location, int ring_id);
+	void move_removering(const int&, pair<int, int>); //new coordinate 
 	double get_score();
 };
 
