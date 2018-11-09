@@ -20,12 +20,12 @@ using namespace std;
 //#define UNDO_MR_REMOVAL 'Z' //Undo Removal of 5 MARKERS in a row and asociated RING ("MR")
 
 vector<string> split_string(string);
-vector<int> get_extreme_L(pair<int, int>);
-pair<int, int> get_extreme_R(pair<int, int>);
+vector<int>* get_extreme_L(pair<int, int>);
+pair<int, int>* get_extreme_R(pair<int, int>);
 pair<int, int>  conversion_12(pair<int, int>);
 pair<int, int> conversion_21(pair<int, int>);
 vector<pair<int, int>> get_middle_points(pair<int, int>, pair<int, int>);
-bool terminal_test(int);
+inline bool terminal_test(int);
 
 struct gameState
 {
@@ -56,7 +56,7 @@ public:
 	unordered_map<string, int> board_state;
 	/* Key: (x,y) stored as x*100 +y; Value: White ring : whitering_location vector index [0, 4], Black ring: blackring_location vector index [5, 9]
 	White marker: -1, Black marker: -2, Empty space: -3 OR not present in board_state, */
-	unordered_map<int, vector<pair<int, int>>> all_moves;
+	unordered_map<int, vector<pair<int, int>>*> all_moves;
 	/* Key : [0,9] (for all rings), Value : vector of all possible coordinates to move to, along L,V,R */
 	unordered_map<int, pair<int, int>> extreme_y =
 	{
@@ -78,22 +78,22 @@ public:
 	Game(int);
 	Game(Game*);
 	void initialiseBoard();
-	string execute_find_five(int, vector<pair<int, int>>&);
+	string execute_find_five(const int&, vector<pair<int, int>>&);
 	void undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
 	string execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>);
 	int find_five(vector<pair<int, int>>&); 
 	pair<int,int> find_x(int);
-	vector<pair<int, int>> compute_all_moves_ring(pair<int, int>); //new coordinate
+	vector<pair<int, int>>* compute_all_moves_ring(pair<int, int>); //new coordinate
 	void compute_all_moves(int); //new coordinate
 	void execute_move(int, string, double); //new coordinate
 	string freeloc_ring_init(int); 
 	string generate_random_move(int);
 	string generate_minimax1_move(int); 
 	void move_placering(int, pair<int, int>); //new coordinate 
-	void undo_move_movering(int player, pair<int, int> old_loc, pair<int, int> new_loc);
-	void move_movering(int, pair<int, int>, pair<int, int>); //new coordinate
-	void undo_move_removemarkers(int player, pair<int, int> old_loc, pair<int, int> new_loc);
-	void move_removemarkers(int, pair<int, int>, pair<int, int>); //new coordinate
+	void undo_move_movering(const int& player, pair<int, int> old_loc, pair<int, int> new_loc);
+	void move_movering(const int&, pair<int, int>, pair<int, int>); //new coordinate
+	void undo_move_removemarkers(const int& player, pair<int, int> old_loc, pair<int, int> new_loc);
+	void move_removemarkers(const int&, pair<int, int>, pair<int, int>); //new coordinate
 	void undo_move_removering(int player, pair<int ,int> location, int ring_id);
 	void move_removering(int, pair<int, int>); //new coordinate 
 	double get_score();

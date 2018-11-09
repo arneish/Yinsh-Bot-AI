@@ -1,24 +1,23 @@
 #include<iostream>
 #include<vector>
 using namespace std;
+vector<int>* function()
+{
+    vector<int>* temp_ptr = new vector<int>();
+    *temp_ptr = {1,2,3,4};
+    vector<int> &temp = *temp_ptr;
+    temp.push_back(6);
+    return temp_ptr;
+}
 int main(int argc, char** argv)
 {
-    int *ptr;
-    int *ptr2;
-    int *ptr3;
-    ptr = new int(3);
-    ptr2 = new int (4);
-    ptr3 = new int (5);
-    vector<int*> vec = {ptr, ptr2, ptr3};
-    for (auto&elem: vec)
+    vector<int> *ptr = function();
+    cout<<ptr->at(0)<<"\n";
+    for (auto it = ptr->begin(); it!=ptr->end(); ++it)
     {
-        cout<<*elem<<"\n";
+        cout<<*it<<" ";
     }
+    delete ptr;
     cout<<"\n";
-    *ptr3 = 6;
-    for (auto&elem: vec)
-    {
-        cout<<*elem<<"\n";
-    }
     return 0;
 }
