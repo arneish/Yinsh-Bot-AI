@@ -10,6 +10,9 @@
 #include <float.h>
 #include "Game_5.h"
 
+#define MAX_DEPTH 15
+int global_depth;
+
 using namespace std;
 
 vector<string> split_string(string split_me)
@@ -1392,23 +1395,28 @@ string Game::generate_minimax1_move(int player)
 	/* Code modified for A-5 incorporating the new strategy */
 	clock_t begin_time = clock();
 	string move_string;
-	if (player == POKER_FACE)
-	{
-		if (!InitFiveRing)
-		{   //place black rings randomly radially outward
+	if (!InitFiveRing)
+	{   //place black rings randomly radially outward
 			move_string = freeloc_ring_init(POKER_FACE);
 			if (blackring_location_map.size() == 5)
 				InitFiveRing = true;
 			return move_string;
-		}
-		vector<pair<int, int>> result_coordinates;
-		move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
+	}
+	vector<pair<int, int>> result_coordinates;
+	move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
+	
+	global_depth = 1;
+	string best_result = "";
+	while(global_depth<MAX_DEPTH)
+	{
 		struct gameState* rootGameState = new struct gameState;
 		rootGameState->selfState = "";
-		string result = minimax_decision_5(rootGameState, this);
-		move_string += result;
-		//cerr << "move_String:" << move_string << "\n";
+		best_result = minimax_decision_5(rootGameState, this);
+		delete rootGameState;
+		global_depth++;
 	}
+	move_string += best_result;
+		//cerr << "move_String:" << move_string << "\n";
 	cerr<<"time spent in decision:"<<(clock()-begin_time)/(double)(CLOCKS_PER_SEC)<<"s"<<"\n";
 	time_remaining_us = time_remaining_us - (float(clock() - begin_time) / CLOCKS_PER_SEC);
 	return move_string;
@@ -1622,7 +1630,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	return v;
 }
 
-inline bool terminal_test(int depth)
+inline bool terminal_test()
 {
-	return (depth == 3)?true:false;
+	return (global_depth == 3)?true:false;
 }
