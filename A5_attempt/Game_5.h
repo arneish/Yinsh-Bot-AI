@@ -30,10 +30,13 @@ inline bool terminal_test(int);
 struct gameState
 {
 	string selfState; //selfState stores the move (type:string) to be executed on its parent board-state to generate currentState
-	//string revertParent;
+	string revertToParent;
 	vector<gameState*> childState;
+	bool allChildrenStored = false;
 	double score;
 };
+inline bool OrderForMaxNode(const gameState* a, const gameState* b);
+inline bool OrderForMinNode(const gameState* a, const gameState* b);
 
 class Game
 {
@@ -79,7 +82,7 @@ public:
 	Game(Game*);
 	void initialiseBoard();
 	string execute_find_five(const int&, vector<pair<int, int>>&);
-	void undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
+	string undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
 	string execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>);
 	int find_five(vector<pair<int, int>>&); 
 	pair<int,int> find_x(int);
