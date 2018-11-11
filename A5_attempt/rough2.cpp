@@ -7,8 +7,17 @@ using namespace std;
 struct data{
     string word;
     int number;
+    int score;
     bool t = true;
 };
+inline bool OrderForMaxNode(const data *a, const data *b)
+{
+	return a->score > b->score;
+}
+inline bool OrderForMinNode(const data *a, const data *b)
+{
+	return a->score < b->score;
+}
 
 inline bool compare(const data* a, const data* b)
 {
@@ -18,16 +27,21 @@ inline bool compare(const data* a, const data* b)
 int main(int argc, char**argv)
 {
     data* ONE = new data;
-    ONE->word="one";
+    ONE->score = 100;
     data* TWO = new data;
-    TWO->word = "onetwo";
+    TWO->score = 200;
     data* THREE = new data;
-    THREE->word="onetwothree";
+    THREE->score = 50;
     vector<data*> temp = {ONE, TWO, THREE};
-    sort(temp.begin(), temp.end(), compare);
+    sort(temp.begin(), temp.end(), OrderForMaxNode);
     for (auto&elem: temp)
     {
-        cout<<elem->t<<" ";
+        cout<<elem->score<<" ";
+    }
+    sort(temp.begin(), temp.end(), OrderForMinNode);
+    for (auto&elem: temp)
+    {
+        cout<<elem->score<<" ";
     }
 //     vector<int> t = {1,2,3,4,5};
 //     vector<int> q = vector<int> (10, -1);

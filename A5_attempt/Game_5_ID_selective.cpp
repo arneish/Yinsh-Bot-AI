@@ -11,11 +11,11 @@
 #include <algorithm>
 #include "Game_5.h"
 
-#define MAX_DEPTH 8
+#define MAX_DEPTH 10
 #define MID_GAME_START 15
 #define END_GAME_START 25
 
-double MAX_LIMIT=0.40;
+double MAX_LIMIT;
 int global_depth = 4, n_f = 5;
 int prune_counter=0;
 int my_ply_counter=0;
@@ -1263,6 +1263,7 @@ void Game::move_movering(const int &player, pair<int, int> old_loc, pair<int, in
 	board_state[new_loc.first + 5][new_loc.second + 5] = ring_ID;
 	if (player == POKER_FACE)
 	{
+		//cerr<<ring_ID<<"\n";
 		assert(ring_ID>=5 && ring_ID<=9);
 		blackring_location_map[ring_ID - 5] = new_loc;
 		board_state[old_loc.first + 5][old_loc.second + 5] = BLACK_MARKER; //dropping black marker
@@ -1271,6 +1272,7 @@ void Game::move_movering(const int &player, pair<int, int> old_loc, pair<int, in
 	else
 	{
 		assert(player == OPPONENT);
+		//cerr<<ring_ID<<"\n";
 		assert(ring_ID >= 0 && ring_ID <= 4);
 		whitering_location_map[ring_ID] = new_loc;
 		board_state[old_loc.first + 5][old_loc.second + 5] = WHITE_MARKER; //dropping white marker
@@ -1399,7 +1401,9 @@ double Game::get_score()
 	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
 	//new scoring function:
 	if (this->rings_onboard_white==2)
+	{
 		return -DBL_MAX;
+	}
 	pair<int, int> fours, triples, pairs;
 	fours = find_x(4);
 	triples = find_x(3);
@@ -1420,7 +1424,7 @@ string Game::generate_minimax1_move(int player)
 	if (my_ply_counter<MID_GAME_START)
 		MAX_LIMIT=0.8;
 	else
-		MAX_LIMIT=0.50;
+		MAX_LIMIT=0.70;
 	cerr<<"PLY COUNTER:"<<my_ply_counter<<" MAX_LIMIT:"<<MAX_LIMIT<<"\n";
 	clock_t begin_time = clock();
 	string move_string;
@@ -1493,7 +1497,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (terminal_test(currentState, currentGame, depth))
 	{
 		currentState->score = currentGame->get_score();
-		return currentGame->get_score();
+		return currentState->score;
 	}
 	double v = -DBL_MAX;
 
@@ -1501,7 +1505,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (currentState->allChildrenStored) //depth<=global_depth-2)
 	{
 		//children already exist=>sort children in desc for move ordering
-		//cerr<<"MAX stored children size and depth:"<<currentState->childState.size()<<": "<<depth<<"\n";
+		cerr<<"MAX stored children size and depth:"<<currentState->childState.size()<<": "<<depth<<"\n";
 		sort(currentState->childState.begin(), currentState->childState.end(), OrderForMaxNode);
 		//execute move for each state on currentGame and continue
 		int counter =0;
@@ -1574,19 +1578,18 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						string local_generate_action = generate_action_string + currentGame->execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc);
 						inner_child->selfState = local_generate_action;
 						currentState->childState.push_back(inner_child);
-						inner_child->score = currentGame->get_score();
+						//inner_child->score = currentGame->get_score();
 						//recursively call tree_create_5 on the new struct game_state
-						/*
+						
 						double minval = min_value_5(inner_child, currentGame, depth + 1, alpha, beta);
-						//cerr<<"minval:"<<minval<<"\n";
 						if (minval > v)
 							v = minval;
 						if (v >= beta)
 						{
 							currentState->score = v;
-							currentState->allChildrenStored = false;
+							currentState->allChildrenStored = true;
 							//back from Recursion : undo moves made to currentGame
-							revert_action_string = currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id) + revert_action_string;
+							revert_action_string = currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id) + revert_action_string_default;
 							inner_child->revertToParent = revert_action_string;
 							currentGame->undo_move_movering(POKER_FACE, original_ring_loc, destinationLoc);
 							return v;	
@@ -1594,7 +1597,6 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						if (v > alpha)
 							alpha = v;
 						
-						*/
 						//back from Recursion : undo moves made to currentGame
 						string temp = currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
 						assert(temp.size()>2);
@@ -1608,8 +1610,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				child->selfState = generate_action_string;
 				child->revertToParent = revert_action_string_default;
 				currentState->childState.push_back(child);
-				child->score = currentGame->get_score();
-				/*
+				//child->score = currentGame->get_score();
 				//recursively call tree_create_5 on the new struct game_state
 				double minval = min_value_5(child, currentGame, depth + 1, alpha, beta);
 				//cerr<<"max_value_5: minval:"<<minval<<" depth:"<<depth<<"\n";
@@ -1618,23 +1619,21 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				if (v >= beta)
 				{	
 					currentState->score = v;
-					currentState->allChildrenStored = false;
+					currentState->allChildrenStored = true;
 					//back from Recursion : undo moves made to currentGame
 					currentGame->undo_move_movering(POKER_FACE, original_ring_loc, destinationLoc);
 					return v;
 				}
 				if (v > alpha)
 					alpha = v;
-				*/
 			}
 			currentGame->undo_move_movering(POKER_FACE, original_ring_loc, destinationLoc);
 		}
 		delete all_moves_ring;
 	}
-	//currentState->score = v;
 	currentState->allChildrenStored = true;
-
-	/*Evaluate all children in sorted scoring order in DFS*/
+	/*
+	//Evaluate all children in sorted scoring order in DFS
 	if (depth+1!=global_depth)
 		sort(currentState->childState.begin(), currentState->childState.end(), OrderForMaxNode);
 	//cerr<<"MAX Generated: "<<currentState->childState.size()<<"\n";
@@ -1658,6 +1657,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			alpha = v;
 		currentGame->execute_move(POKER_FACE, child_gameState->revertToParent, 0);
 	}
+	*/
 	currentState->score = v;
 	return v;
 }
@@ -1741,21 +1741,23 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						inner_child->score = currentGame->get_score();
 
 						//recursively call tree_create_5 on the new struct game_state
-						/*
+						
 						double maxval = max_value_5(inner_child, currentGame, depth + 1, alpha, beta);
 						if (maxval < v)
 							v = maxval;
 						if (v <= alpha)
 						{
 							currentState->score = v;
+							currentState->allChildrenStored = true;
 							//back from Recursion : undo moves made to currentGame
-							currentGame->undo_execute_findfive_ring(OPPONENT, five_coordinates, ring_loc, ring_id);
+							revert_action_string= currentGame->undo_execute_findfive_ring(OPPONENT, five_coordinates, ring_loc, ring_id)+revert_action_string_default;
+							inner_child->revertToParent = revert_action_string;
 							currentGame->undo_move_movering(OPPONENT, original_ring_loc, destinationLoc);
 							return v;
 						}
 						if (v < beta)
 							beta = v;
-						*/
+						
 						//back from Recursion : undo moves made to currentGame
 						string temp = currentGame->undo_execute_findfive_ring(OPPONENT, five_coordinates, ring_loc, ring_id);
 						assert(temp.size()>2);
@@ -1769,8 +1771,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				child->selfState = generate_action_string;
 				child->revertToParent = revert_action_string_default;
 				currentState->childState.push_back(child);
-				child->score = currentGame->get_score();
-				/*
+				//child->score = currentGame->get_score();
 				//recursively call tree_create_5 on the new struct game_state
 				double maxval = max_value_5(child, currentGame, depth + 1, alpha, beta);
 				if (maxval < v)
@@ -1778,22 +1779,21 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 				if (v <= alpha)
 				{
 					currentState->score = v;
+					currentState->allChildrenStored = true;
 					//back from Recursion : undo moves made to currentGame
 					currentGame->undo_move_movering(OPPONENT, original_ring_loc, destinationLoc);
 					return v;
 				}
 				if (v < beta)
 					beta = v;
-				*/
 			}
 			currentGame->undo_move_movering(OPPONENT, original_ring_loc, destinationLoc);
 		}
 		delete all_moves_ring;
 	}
-	//currentState->score = v;
 	currentState->allChildrenStored = true;
 
-	/*Evaluate all children in sorted scoring order in DFS*/
+	/*Evaluate all children in sorted scoring order in DFS
 	if (depth+1!=global_depth)
 		sort(currentState->childState.begin(), currentState->childState.end(), OrderForMinNode);
 	//cerr<<"MIN Generated: "<<currentState->childState.size()<<"\n";
@@ -1817,13 +1817,14 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			beta = v;
 		currentGame->execute_move(OPPONENT, child_gameState->revertToParent, 0);
 	}
+	*/
 	currentState->score = v;
 	return v;
 }
 bool terminal_test(struct gameState* game_state, Game* game, int &depth)
 {
 	if (depth==global_depth) return true;
-	if (game->blackring_location_map.size()==2 || game->whitering_location_map.size()==2) 
+	if (game->rings_onboard_black==2 || game->rings_onboard_white==2) 
 	{
 		game_state->allChildrenStored=true;
 		return true;
