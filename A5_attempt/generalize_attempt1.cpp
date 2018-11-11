@@ -9,7 +9,7 @@
 #include <sstream>
 #include <float.h>
 #include "Game_5.h"
-
+//#include "Game_5_attempt1arneish.h"
 #define MAX_DEPTH 15
 int global_depth=4, n_f=5, m_f = 5, k_f =5;
 

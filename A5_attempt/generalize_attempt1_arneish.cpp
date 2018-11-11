@@ -4,7 +4,6 @@ GREEDY EXTRACTION OF LEVEL ONE NODES
 
 */
 
-
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -16,12 +15,15 @@ GREEDY EXTRACTION OF LEVEL ONE NODES
 #include <sstream>
 #include <float.h>
 #include <algorithm>
-#include "Game_5.h"
+//#include "Game_5.h"
+#include "Game_5_attempt1arneish.h"
 
 #define MAX_DEPTH 15
-int global_depth=4, n_f=5, m_f = 5, k_f =5;
+int global_depth=4;
 int POKER_FACE_ply=0;
 using namespace std;
+
+
 
 vector<string> split_string(string split_me)
 {
@@ -368,6 +370,40 @@ vector<pair<int, int>> get_middle_points(pair<int, int> loc1, pair<int, int> loc
 
 void Game::initialiseBoard()
 {
+	if(n_f==5){
+	extreme_y =
+	{
+		{ 0, make_pair(4, -4) },
+		{ 1, make_pair(4, -5) },
+		{ 2, make_pair(3, -5) },
+		{ 3, make_pair(2, -5) },
+		{ 4, make_pair(1, -5) },
+		{ 5, make_pair(-1, -4) },
+		{ -1, make_pair(5, -4) },
+		{ -2, make_pair(5, -3) },
+		{ -3, make_pair(5, -2) },
+		{ -4, make_pair(5, -1) },
+		{ -5, make_pair(4, 1) }
+	};
+	}
+	else{
+	extreme_y =
+	{
+		{ 0, make_pair(5, -5) },
+		{ 1, make_pair(5, -6) },
+		{ 2, make_pair(4, -6) },
+		{ 3, make_pair(3, -6) },
+		{ 4, make_pair(2, -6) },
+		{ 5, make_pair(1, -5) },
+		{ 6, make_pair(-1, -5) },
+		{ -1, make_pair(6, -5) },
+		{ -2, make_pair(6, -4) },
+		{ -3, make_pair(6, -3) },
+		{ -4, make_pair(6, -2) },
+		{ -5, make_pair(5, -1) },
+		{ -6, make_pair(5, 1) },
+	};
+	}
 	//vertically:
 	this->board_state = vector<vector<int>>(2*n_f+1, vector<int> (2*n_f+1, EMPTY_SPACE));
 	// for (int i = -(n_f-1); i <= (n_f-1); i++)
@@ -1264,7 +1300,7 @@ void Game::move_movering(const int& player, pair<int, int> old_loc, pair<int, in
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
 	int ring_ID = board_state[old_loc.first+n_f][old_loc.second+n_f];
 	assert(ring_ID >= 0 && ring_ID <= (2*m_f-1));
-	board_state[new_loc.first+5][new_loc.second+5] = ring_ID;
+	board_state[new_loc.first+n_f][new_loc.second+n_f] = ring_ID;
 	if (player == POKER_FACE)
 	{
 		blackring_location_map[ring_ID - m_f] = new_loc;
