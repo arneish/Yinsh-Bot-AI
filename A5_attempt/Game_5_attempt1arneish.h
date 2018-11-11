@@ -69,7 +69,7 @@ public:
 	Game(Game*);
 	void initialiseBoard();
 	string execute_find_five(const int&, vector<pair<int, int>>&);
-	void undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
+	string undo_execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>, int);
 	string execute_findfive_ring(int, vector<pair<int, int>>&, pair<int, int>);
 	int find_five(vector<pair<int, int>>&); 
 	pair<int,int> find_x(int);
@@ -97,4 +97,4 @@ double min_value_5(struct gameState *currentState, Game *currentGame,int depth, 
 //double max_value(Game *node, int depth, double alpha, double beta);
 //double min_value(Game *node, int depth, double alpha, double beta);
 
-bool terminal_test(int depth);
+bool terminal_test(struct gameState*, Game* game, int &depth);
