@@ -37,11 +37,11 @@ int f()
 
 int f_wrapper()
 {
-    std::mutex m;
-    std::condition_variable cv;
+    mutex m;
+    condition_variable cv;
     int retValue;
 
-    std::thread t([&cv, &retValue]() 
+    thread t([&cv, &retValue]() 
     {
         retValue = f();
         cv.notify_one();
@@ -50,22 +50,22 @@ int f_wrapper()
     t.detach();
 
     {
-        std::unique_lock<std::mutex> l(m);
-        if(cv.wait_for(l, 1s) == std::cv_status::timeout) 
+        unique_lock<mutex> l(m);
+        if(cv.wait_for(l, 1s) == cv_status::timeout) 
             throw std::runtime_error("Timeout");
     }
-
     return retValue;    
 }
 
 int main()
 {
     bool timedout = false;
-    try {
+    try
+    {
         f_wrapper();
     }
     catch(std::runtime_error& e) {
-        std::cout << e.what() << std::endl;
+        cout << e.what() << endl;
         timedout = true;
     }
 

@@ -25,7 +25,6 @@ pair<int, int>* get_extreme_R(pair<int, int>);
 pair<int, int>  conversion_12(pair<int, int>);
 pair<int, int> conversion_21(pair<int, int>);
 vector<pair<int, int>> get_middle_points(pair<int, int>, pair<int, int>);
-inline bool terminal_test(int);
 
 struct gameState
 {
@@ -110,3 +109,4 @@ double min_value_5(struct gameState *currentState, Game *currentGame,int depth, 
 //double max_value(Game *node, int depth, double alpha, double beta);
 //double min_value(Game *node, int depth, double alpha, double beta);
 
+bool terminal_test(struct gameState*, Game* game, int &depth);

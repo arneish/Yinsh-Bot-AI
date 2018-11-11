@@ -1,3 +1,10 @@
+/*
+IDEAS: END-GAME TERMINAL STATES? DETERMINE ON THE BASIS OF RINGS EXTRACTED -> END GAME == HIGH SCORE FOR WIN, LOW FOR LOSS
+GREEDY EXTRACTION OF LEVEL ONE NODES
+
+*/
+
+
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -8,11 +15,12 @@
 #include <iterator>
 #include <sstream>
 #include <float.h>
+#include <algorithm>
 #include "Game_5.h"
 
 #define MAX_DEPTH 15
 int global_depth=4, n_f=5, m_f = 5, k_f =5;
-
+int POKER_FACE_ply=0;
 using namespace std;
 
 vector<string> split_string(string split_me)
@@ -362,20 +370,20 @@ void Game::initialiseBoard()
 {
 	//vertically:
 	this->board_state = vector<vector<int>>(2*n_f+1, vector<int> (2*n_f+1, EMPTY_SPACE));
-	for (int i = -(n_f-1); i <= (n_f-1); i++)
-	{
-		int y_max = extreme_y[i].first;
-		int y_min = extreme_y[i].second;
-		for (int j = y_max; j >= y_min; j--)
-		{
-			board_state[i+n_f][j+n_f] = EMPTY_SPACE;
-		}
-	}
-	for (int i = 1; i <= (n_f-1); i++)
-	{
-		board_state[0][i+n_f] = EMPTY_SPACE;
-		board_state[10][-i+n_f]= EMPTY_SPACE;
-	}
+	// for (int i = -(n_f-1); i <= (n_f-1); i++)
+	// {
+	// 	int y_max = extreme_y[i].first;
+	// 	int y_min = extreme_y[i].second;
+	// 	for (int j = y_max; j >= y_min; j--)
+	// 	{
+	// 		board_state[i+n_f][j+n_f] = EMPTY_SPACE;
+	// 	}
+	// }
+	// for (int i = 1; i <= (n_f-1); i++)
+	// {
+	// 	board_state[0][i+n_f] = EMPTY_SPACE;
+	// 	board_state[2*n_f][-i+n_f]= EMPTY_SPACE;
+	// }
 }
 
 int Game::find_five(vector<pair<int, int>> &result_coordinates) //returns 0 (not found), -1 (white found), -2 (black found), argument (5 coordinates)
@@ -403,21 +411,25 @@ int Game::find_five(vector<pair<int, int>> &result_coordinates) //returns 0 (not
 						result_coordinates.push_back(make_pair(i, k));
 					}
 					//cerr<<"found 5 in vertical\n";
+					//cerr<<"result_coordinates.size()="<<result_coordinates.size()<<"\n";
+					assert(result_coordinates.size()==k_f);
 					return color;
 				}
 			}
-			else if (board_state[i+n_f][j+n_f] == -1)
+			else if (board_state[i+n_f][j+n_f] == WHITE_MARKER)
 			{
-				color = -1;
+				color = WHITE_MARKER;
 				count_continuous = 1;
 			}
-			else if (board_state[i+n_f][j+n_f] == -2)
+			else if (board_state[i+n_f][j+n_f] == BLACK_MARKER)
 			{
-				color = -2;
+				color = BLACK_MARKER;
 				count_continuous = 1;
 			}
 			else
 			{ //either board_state == -3 or not in board_state
+				//cerr<<"here:"<<i+n_f<<","<<j+n_f<<":"<<board_state[i+n_f][j+n_f]<<"\n";
+				//assert(board_state[i+n_f][j+n_f]==EMPTY_SPACE||(board_state[i+n_f][j+n_f]>=0&&board_state[i+n_f][j+n_f]<=));
 				count_continuous = 0;
 			}
 		}
@@ -812,7 +824,7 @@ vector<pair<int, int>>* Game::compute_all_moves_ring(pair<int, int> ring_loc)
 			x++;
 			y--;
 		}
-		else if (board_state[x+n_f][y+n_f] >= 0 && board_state[x+5][y+5] <= (2*m_f -1))
+		else if (board_state[x+n_f][y+n_f] >= 0 && board_state[x+n_f][y+n_f] <= (2*m_f -1))
 		{ //ring
 			break;
 		}
@@ -947,9 +959,10 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 	this->time_remaining_opponent -= opponent_time_spent;
 	vector<string> tokens = split_string(move);
 	int i = 0;
+	int ring_ID;
 	pair<int, int> coordinates_old;
 	pair<int, int> coordinates_new;
-	pair<int, int> coordinates_ring_remove;
+	pair<int, int> coordinates_ring;
 	while (i != tokens.size())
 	{
 		switch (tokens[i][0])
@@ -974,23 +987,21 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			//cerr<<tokens[i]<<"\n";
 			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
 			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
-			coordinates_ring_remove = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
+			coordinates_ring = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
 			move_removemarkers(player, coordinates_old, coordinates_new);
-			move_removering(player, coordinates_ring_remove);
+			move_removering(player, coordinates_ring);
 			i += 9;
 			break;
-		/*
-		case UNDO_MR_REMOVAL:
-			//"ZS C C ZE C C Y C C"
-			//Undo Move ZS-ZE and Replace ring at Y
-			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
-			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
-			coordinates_ring_remove = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
-			int ring_id = board_state[to_string(coordinates_ring_remove.first) + '$' + to_string(coordinates_ring_remove.second)];
+		case 'Z':
+			assert(tokens[i]=="ZS");
+			coordinates_old = conversion_12(make_pair(stoi(tokens[i+1]), stoi(tokens[i+2])));
+			coordinates_new = conversion_12(make_pair(stoi(tokens[i+4]), stoi(tokens[i+5])));
+			coordinates_ring = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
+			ring_ID = stoi(tokens[i+9]);
 			undo_move_removemarkers(player, coordinates_old, coordinates_new);
-			undo_move_removering(player, coordinates_ring_remove, ring_id);
-			i += 9;
-			break;*/
+			undo_move_removering(player, coordinates_ring, ring_ID);
+			i+=10;
+			break;
 		default:
 			//cerr << "No match in parse switch case" << endl;
 			break;
@@ -1382,18 +1393,24 @@ double Game::get_score()
 {
 	//original scoring function:
 	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
-	//new scoring function:
+	
 	pair<int, int> fours, triples, pairs;
 	fours = find_x(4);
 	triples = find_x(3);
+	//fives = find_x(5);
 	pairs = find_x(2);
-	double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * 3 + (triples.second - triples.first) * (9 + 3) + (fours.second - fours.first) * (27 + 9 + 3) /*+ (fives.second-fives.first)*(81 + 27 + 9 + 3)*/ + 400 * (rings_onboard_white) - (rings_onboard_black)*800;
+	double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) *(27+9+3) + (triples.second - triples.first) * (81+27+9 + 3) + (fours.second - fours.first) * (243+81+27 + 9 + 3) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ +  (rings_onboard_white - rings_onboard_black)*5000;
 	this->score = score;
 	return score;
 }
 
 string Game::generate_minimax1_move(int player)
 {
+	if (++POKER_FACE_ply > 25)
+	{	global_depth=5; 
+		cerr<<"\n POKER_FACE_ply:"<<POKER_FACE_ply<<"! GLOBAL_DEPTH 5\n";	
+	}
+
 	/* Code modified for A-5 incorporating the new strategy */
 	clock_t begin_time = clock();
 	string move_string;
@@ -1407,17 +1424,17 @@ string Game::generate_minimax1_move(int player)
 	vector<pair<int, int>> result_coordinates;
 	move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
 	
-	/*Iterative Deepening*/
-	string best_result = "";
-	global_depth = 1;
-	while(global_depth<5)
-	{
+	// /*Iterative Deepening*/
+	// string best_result = "";
+	// global_depth = 1;
+	// while(global_depth<5)
+	// {
 		struct gameState* rootGameState = new struct gameState;
 		rootGameState->selfState = "";
-		best_result = minimax_decision_5(rootGameState, this);
+		string best_result = minimax_decision_5(rootGameState, this);
 		delete rootGameState;
-		global_depth++;
-	}
+	// 	global_depth++;
+	// }
 	move_string += best_result;
 		//cerr << "move_String:" << move_string << "\n";
 	cerr<<"time spent in decision:"<<(clock()-begin_time)/(double)(CLOCKS_PER_SEC)<<"s"<<"\n";
@@ -1475,6 +1492,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 
 			if (currentGame->find_five(five_coordinates) == BLACK_MARKER)
 			{
+				//cerr<<"FIVE_MARKERS IN A ROW FOUND!\n";
 				for (int k = 0; k < m_f; k++)
 				{
 					if (currentGame->blackring_location_map.count(k))
@@ -1537,6 +1555,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 
 double min_value_5(struct gameState *currentState, Game *currentGame, int depth, double alpha, double beta)
 {
+	//CHECK THAT INIT PLACE RING WILL WORK!!!!!//
 	//cerr<<"In min_val, depth:"<<depth<<"\n";
 	if (terminal_test(depth))
 	{
