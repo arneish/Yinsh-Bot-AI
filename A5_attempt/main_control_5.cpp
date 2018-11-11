@@ -1,17 +1,38 @@
-#include "Game_5.h"
+#include "Game_5_attempt1arneish.h"
 
 using namespace std;
 
+int n_f, k_f, m_f, time_limit;
 // Sample C++ Code 
 int main(int argc, char** argv) 
 {
 	cerr<<"conversion:"<<conversion_12(make_pair(3,9)).first<<" "<<conversion_12(make_pair(3,9)).second<<"\n";
-	int player_id, board_size, time_limit;
+	int player_id;
 	string move;
 	// Get input from server about game specifications
-	cin >> player_id >> board_size >> time_limit;
+	cin >> player_id >> n_f >> time_limit >> k_f;
+	if (n_f==5)
+	{
+		m_f = 5;
+		time_limit = 120;
+	}
+	else
+	{
+		if (k_f == 5)
+		{
+			m_f=6;
+			time_limit=150;
+		}
+		else
+		{
+			m_f=6;
+			time_limit=180;
+		}
+	}
 	//cin.ignore();
 	cerr << "player_id:" << player_id << "\n";
+	cerr <<n_f<<"\n";
+
 	Game *game_one = new Game(time_limit);
 	
 	if (player_id == 2) 
