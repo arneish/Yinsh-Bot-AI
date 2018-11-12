@@ -1,9 +1,7 @@
 /*
 IDEAS: END-GAME TERMINAL STATES? DETERMINE ON THE BASIS OF RINGS EXTRACTED -> END GAME == HIGH SCORE FOR WIN, LOW FOR LOSS
 GREEDY EXTRACTION OF LEVEL ONE NODES
-
 */
-
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -78,7 +76,7 @@ vector<int> *get_extreme_L(pair<int, int> loc)
 	}
 	else
 	{
-		assert(loc.first + loc.second == 0);
+		//assert(loc.first + loc.second == 0);
 		x_left = -(n_f - 1);
 		y_left = (n_f - 1);
 		x_right = (n_f - 1);
@@ -115,7 +113,7 @@ pair<int, int> *get_extreme_R(pair<int, int> loc)
 	}
 	else
 	{
-		assert(loc.second == -n_f);
+		//assert(loc.second == -n_f);
 		x_left = 1;
 		x_right = (n_f - 1);
 	}
@@ -357,12 +355,12 @@ int Game::find_five(vector<pair<int, int>> &result_coordinates) //returns 0 (not
 				{
 					for (int k = j; k < j + k_f; k++)
 					{
-						assert(board_state[i + n_f][k + n_f] == color);
+						//assert(board_state[i + n_f][k + n_f] == color);
 						result_coordinates.push_back(make_pair(i, k));
 					}
 					//cerr<<"found 5 in vertical\n";
 					//cerr<<"result_coordinates.size()="<<result_coordinates.size()<<"\n";
-					assert(result_coordinates.size() == k_f);
+					//assert(result_coordinates.size() == k_f);
 					return color;
 				}
 			}
@@ -402,7 +400,7 @@ int Game::find_five(vector<pair<int, int>> &result_coordinates) //returns 0 (not
 				{
 					for (int k = j; k > j - k_f; k--)
 					{
-						assert(board_state[k + n_f][i - k + n_f] == color);
+						//assert(board_state[k + n_f][i - k + n_f] == color);
 						result_coordinates.push_back(make_pair(k, i - k));
 					}
 					return color;
@@ -444,7 +442,7 @@ int Game::find_five(vector<pair<int, int>> &result_coordinates) //returns 0 (not
 				{
 					for (int k = j; k > j - k_f; k--)
 					{
-						assert(board_state[j + n_f][i + n_f] == color);
+						//assert(board_state[j + n_f][i + n_f] == color);
 						result_coordinates.push_back(make_pair(k, i));
 					}
 					return color;
@@ -667,7 +665,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[ring_loc.first + n_f][y + n_f] == -1 || board_state[ring_loc.first + n_f][y + n_f] == -2);
+			//assert(board_state[ring_loc.first + n_f][y + n_f] == -1 || board_state[ring_loc.first + n_f][y + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = y + 1; i <= y_max; i++)
 			{
@@ -700,7 +698,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[ring_loc.first + n_f][y + n_f] == -1 || board_state[ring_loc.first + n_f][y + n_f] == -2);
+			//assert(board_state[ring_loc.first + n_f][y + n_f] == -1 || board_state[ring_loc.first + n_f][y + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = y - 1; i >= y_min; i--)
 			{
@@ -742,7 +740,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[x + n_f][y + n_f] == -1 || board_state[x + n_f][y + n_f] == -2);
+			//assert(board_state[x + n_f][y + n_f] == -1 || board_state[x + n_f][y + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = x - 1; i >= x_left; i--)
 			{
@@ -780,7 +778,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[x + n_f][y + n_f] == -1 || board_state[x + n_f][y + n_f] == -2);
+			//assert(board_state[x + n_f][y + n_f] == -1 || board_state[x + n_f][y + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = x + 1; i <= x_right; i++)
 			{
@@ -819,7 +817,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[x + n_f][ring_loc.second + n_f] == -1 || board_state[x + n_f][ring_loc.second + n_f] == -2);
+			//assert(board_state[x + n_f][ring_loc.second + n_f] == -1 || board_state[x + n_f][ring_loc.second + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = x - 1; i >= x_left; i--)
 			{
@@ -852,7 +850,7 @@ vector<pair<int, int>> *Game::compute_all_moves_ring(pair<int, int> ring_loc)
 		}
 		else
 		{ //marker
-			assert(board_state[x + n_f][ring_loc.second + n_f] == -1 || board_state[x + n_f][ring_loc.second + n_f] == -2);
+			//assert(board_state[x + n_f][ring_loc.second + n_f] == -1 || board_state[x + n_f][ring_loc.second + n_f] == -2);
 			/*determine first free space if any*/
 			for (int i = x + 1; i <= x_right; i++)
 			{
@@ -903,10 +901,9 @@ void Game::compute_all_moves(int player)
 	}
 }
 
-void Game::execute_move(int player, string move, double opponent_time_spent)
+void Game::execute_move(int player, string move)
 {
 	//cerr << "execute_move called:" << move << "\n";
-	this->time_remaining_opponent -= opponent_time_spent;
 	vector<string> tokens = split_string(move);
 	int i = 0;
 	int ring_ID;
@@ -939,7 +936,7 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			i += 6;
 			break;
 		case 'R':
-			assert(tokens[i] == "RS");
+			//assert(tokens[i] == "RS");
 			//cerr<<tokens[i]<<"\n";
 			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
 			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
@@ -950,13 +947,13 @@ void Game::execute_move(int player, string move, double opponent_time_spent)
 			break;
 		case 'Z':
 			//cerr<<tokens[i]<<" ";
-			assert(tokens[i] == "ZS");
+			//assert(tokens[i] == "ZS");
 			coordinates_old = conversion_12(make_pair(stoi(tokens[i + 1]), stoi(tokens[i + 2])));
 			coordinates_new = conversion_12(make_pair(stoi(tokens[i + 4]), stoi(tokens[i + 5])));
 			coordinates_ring = conversion_12(make_pair(stoi(tokens[i + 7]), stoi(tokens[i + 8])));
 			ring_ID = stoi(tokens[i + 9]);
 			//cerr<<ring_ID<<"\n";
-			assert(ring_ID >= 0 && ring_ID <= 2 * m_f - 1);
+			//assert(ring_ID >= 0 && ring_ID <= 2 * m_f - 1);
 			undo_move_removemarkers(player, coordinates_old, coordinates_new);
 			undo_move_removering(player, coordinates_ring, ring_ID);
 			i += 10;
@@ -978,7 +975,7 @@ string Game::freeloc_ring_init(int player)
 		blackring_location_map.insert(make_pair(0, make_pair(0, 0)));
 		//blackring_location.push_back(make_pair(0, 0));
 		board_state[n_f][n_f] = blackring_location_map.size() + m_f - 1;
-		assert(board_state[n_f][n_f] >= m_f && board_state[n_f][n_f] <= (2 * m_f - 1));
+		//assert(board_state[n_f][n_f] >= m_f && board_state[n_f][n_f] <= (2 * m_f - 1));
 		string move = "P 0 0";
 		rings_onboard_black += 1;
 		return move;
@@ -994,7 +991,7 @@ string Game::freeloc_ring_init(int player)
 			blackring_location_map.insert(make_pair(rings_onboard_black, make_pair(coordinate.first, coordinate.second)));
 			//blackring_location.push_back(make_pair(coordinate.first, coordinate.second));
 			board_state[coordinate.first + n_f][coordinate.second + n_f] = blackring_location_map.size() + (m_f - 1);
-			assert(board_state[coordinate.first + n_f][coordinate.second + n_f] >= m_f && board_state[coordinate.first + n_f][coordinate.second + n_f] <= (2 * m_f - 1));
+			//assert(board_state[coordinate.first + n_f][coordinate.second + n_f] >= m_f && board_state[coordinate.first + n_f][coordinate.second + n_f] <= (2 * m_f - 1));
 			string move = "P 1 " + to_string(p);
 			rings_onboard_black += 1;
 			return move;
@@ -1063,7 +1060,7 @@ string Game::generate_random_move(int player)
 		pair<int, int> loc_end = (*all_moves[m_f + random_ring])[random_move];
 		//cerr << "loc_end:" << loc_end.first << " " << loc_end.second << "\n";
 		//cerr<<"board_state[to_string(loc_start)]:"<<board_state[to_string(loc_start.first)+'$'+to_string(loc_start.second)]<<"\n";
-		assert(board_state[loc_start.first + n_f][loc_start.second + n_f] >= m_f && board_state[loc_start.first + n_f][loc_start.second + n_f] <= (2 * m_f - 1));
+		//assert(board_state[loc_start.first + n_f][loc_start.second + n_f] >= m_f && board_state[loc_start.first + n_f][loc_start.second + n_f] <= (2 * m_f - 1));
 		move_movering(player, loc_start, loc_end);
 		pair<int, int> loc_start_hex = conversion_21(loc_start);
 		pair<int, int> loc_end_hex = conversion_21(loc_end);
@@ -1157,19 +1154,13 @@ string Game::execute_find_five(const int &player, vector<pair<int, int>> &result
 
 void Game::move_placering(const int &player, pair<int, int> location)
 {
-	if (player == POKER_FACE)
-	{
-		assert(false);
-	}
-	else
-	{
-		assert(player == OPPONENT);
-		assert(board_state[location.first + n_f][location.second + n_f] == EMPTY_SPACE);
+	
+		//assert(player == OPPONENT);
+		//assert(board_state[location.first + n_f][location.second + n_f] == EMPTY_SPACE);
 		whitering_location_map.insert(make_pair(rings_onboard_white, location));
 		board_state[location.first + n_f][location.second + n_f] = whitering_location_map.size() - 1;
-		assert(board_state[location.first + n_f][location.second + n_f] >= 0 && board_state[location.first + n_f][location.second + n_f] <= (m_f - 1));
+		//assert(board_state[location.first + n_f][location.second + n_f] >= 0 && board_state[location.first + n_f][location.second + n_f] <= (m_f - 1));
 		rings_onboard_white += 1;
-	}
 }
 
 void Game::undo_move_movering(const int &player, pair<int, int> old_loc, pair<int, int> new_loc)
@@ -1178,7 +1169,7 @@ void Game::undo_move_movering(const int &player, pair<int, int> old_loc, pair<in
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
 	int ring_ID = board_state[new_loc.first + n_f][new_loc.second + n_f];
 	board_state[new_loc.first + n_f][new_loc.second + n_f] = EMPTY_SPACE;
-	assert(ring_ID >= 0 && ring_ID <= (2 * m_f - 1));
+	//assert(ring_ID >= 0 && ring_ID <= (2 * m_f - 1));
 	board_state[old_loc.first + n_f][old_loc.second + n_f] = ring_ID;
 	if (player == POKER_FACE)
 	{
@@ -1187,7 +1178,7 @@ void Game::undo_move_movering(const int &player, pair<int, int> old_loc, pair<in
 	}
 	else
 	{
-		assert(player == OPPONENT && ring_ID >= 0 && ring_ID <= (m_f - 1));
+		//assert(player == OPPONENT && ring_ID >= 0 && ring_ID <= (m_f - 1));
 		whitering_location_map[ring_ID] = old_loc;
 		whitemarker_number -= 1;
 	}
@@ -1223,7 +1214,7 @@ void Game::move_movering(const int &player, pair<int, int> old_loc, pair<int, in
 	string new_loc_string = to_string(new_loc.first) + '$' + to_string(new_loc.second);
 	int ring_ID = board_state[old_loc.first + n_f][old_loc.second + n_f];
 	//cerr<<"ring_ID:"<<ring_ID<<"\n";
-	assert(ring_ID >= 0 && ring_ID <= (2 * m_f - 1));
+	//assert(ring_ID >= 0 && ring_ID <= (2 * m_f - 1));
 	board_state[new_loc.first + n_f][new_loc.second + n_f] = ring_ID;
 	if (player == POKER_FACE)
 	{
@@ -1233,8 +1224,8 @@ void Game::move_movering(const int &player, pair<int, int> old_loc, pair<int, in
 	}
 	else
 	{
-		assert(player == OPPONENT);
-		assert(ring_ID >= 0 && ring_ID <= m_f - 1);
+		//assert(player == OPPONENT);
+		//assert(ring_ID >= 0 && ring_ID <= m_f - 1);
 		whitering_location_map[ring_ID] = new_loc;
 		board_state[old_loc.first + n_f][old_loc.second + n_f] = WHITE_MARKER; //dropping white marker
 		whitemarker_number += 1;
@@ -1273,12 +1264,12 @@ void Game::undo_move_removemarkers(const int &player, pair<int, int> old_loc, pa
 	else
 		color = WHITE_MARKER;
 	vector<pair<int, int>> *mid_points = get_correct_middle_points(old_loc, new_loc);
-	assert(mid_points->size() == k_f - 2);
+	//assert(mid_points->size() == k_f - 2);
 	board_state[old_loc.first + n_f][old_loc.second + n_f] = color;
 	board_state[new_loc.first + n_f][new_loc.second + n_f] = color;
 	for (const auto &coordinate : *mid_points)
 	{
-		assert(board_state[coordinate.first + n_f][coordinate.second + n_f] == EMPTY_SPACE);
+		//assert(board_state[coordinate.first + n_f][coordinate.second + n_f] == EMPTY_SPACE);
 		board_state[coordinate.first + n_f][coordinate.second + n_f] = color;
 	}
 	if (player == POKER_FACE)
@@ -1318,13 +1309,13 @@ void Game::undo_move_removering(const int &player, pair<int, int> location, int 
 	board_state[location.first + n_f][location.second + n_f] = ring_id;
 	if (player == POKER_FACE)
 	{
-		assert(ring_id >= m_f && ring_id <= (2 * m_f - 1));
+		//assert(ring_id >= m_f && ring_id <= (2 * m_f - 1));
 		blackring_location_map[ring_id - m_f] = location;
 		rings_onboard_black += 1;
 	}
 	else
 	{
-		assert(player == OPPONENT && ring_id >= 0 && ring_id <= (m_f - 1));
+		//assert(player == OPPONENT && ring_id >= 0 && ring_id <= (m_f - 1));
 		whitering_location_map[ring_id] = location;
 		rings_onboard_white += 1;
 	}
@@ -1337,14 +1328,14 @@ void Game::move_removering(const int &player, pair<int, int> location)
 	board_state[location.first + n_f][location.second + n_f] = EMPTY_SPACE;
 	if (player == POKER_FACE)
 	{
-		assert(ring_id >= m_f && ring_id <= 2 * m_f - 1);
-		assert(blackring_location_map.count(ring_id - m_f));
+		//assert(ring_id >= m_f && ring_id <= 2 * m_f - 1);
+		//assert(blackring_location_map.count(ring_id - m_f));
 		blackring_location_map.erase(ring_id - m_f);
 		rings_onboard_black -= 1;
 	}
 	else
 	{
-		assert(player == OPPONENT && ring_id >= 0 && ring_id <= m_f - 1);
+		//assert(player == OPPONENT && ring_id >= 0 && ring_id <= m_f - 1);
 		whitering_location_map.erase(ring_id);
 		rings_onboard_white -= 1;
 	}
@@ -1442,7 +1433,7 @@ string Game::generate_minimax1_move(int player)
 		if (time_spent > 1.0)
 			break;
 	}
-	this->execute_move(POKER_FACE, best_result, 0);
+	this->execute_move(POKER_FACE, best_result);
 	delete rootGameState;
 	move_string += best_result;
 	double time_taken = (clock() - begin_time) / (double)(CLOCKS_PER_SEC);
@@ -1476,7 +1467,7 @@ string minimax_decision_5(struct gameState *currentState, Game *parent)
 
 double max_value_5(struct gameState *currentState, Game *currentGame, int depth, double alpha, double beta)
 {
-	assert(depth % 2 == 0); //max_value_5() can only be called for a MaxNode
+	//assert(depth % 2 == 0); //max_value_5() can only be called for a MaxNode
 	/*Is it a terminal-depth state?*/
 	if (terminal_test(currentState, currentGame, depth))
 	{
@@ -1499,7 +1490,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			if (counter++ > MAX_LIMIT * currentState->childState.size())
 				break;
 			revertToParent = gameState_ptr->revertToParent;
-			currentGame->execute_move(POKER_FACE, gameState_ptr->selfState, 0);
+			currentGame->execute_move(POKER_FACE, gameState_ptr->selfState);
 			double minval = min_value_5(gameState_ptr, currentGame, depth + 1, alpha, beta);
 			if (minval > v)
 				v = minval;
@@ -1507,12 +1498,12 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			{
 				prune_counter++;
 				currentState->score = v;
-				currentGame->execute_move(POKER_FACE, revertToParent, 0);
+				currentGame->execute_move(POKER_FACE, revertToParent);
 				return v;
 			}
 			if (v > alpha)
 				alpha = v;
-			currentGame->execute_move(POKER_FACE, revertToParent, 0);
+			currentGame->execute_move(POKER_FACE, revertToParent);
 		}
 		currentState->score = v;
 		return v;
@@ -1586,7 +1577,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						*/
 						//back from Recursion : undo moves made to currentGame
 						string temp = currentGame->undo_execute_findfive_ring(POKER_FACE, five_coordinates, ring_loc, ring_id);
-						assert(temp.size() > 2);
+						//assert(temp.size() > 2);
 						revert_action_string = temp + revert_action_string_default;
 						inner_child->revertToParent = revert_action_string;
 					}
@@ -1632,7 +1623,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	{
 		if (counter++ > MAX_LIMIT * currentState->childState.size())
 			break;
-		currentGame->execute_move(POKER_FACE, child_gameState->selfState, 0);
+		currentGame->execute_move(POKER_FACE, child_gameState->selfState);
 		double minval = min_value_5(child_gameState, currentGame, child_depth, alpha, beta);
 		if (minval > v)
 			v = minval;
@@ -1640,12 +1631,12 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 		{
 			prune_counter++;
 			currentState->score = v;
-			currentGame->execute_move(POKER_FACE, child_gameState->revertToParent, 0);
+			currentGame->execute_move(POKER_FACE, child_gameState->revertToParent);
 			return v;
 		}
 		if (v > alpha)
 			alpha = v;
-		currentGame->execute_move(POKER_FACE, child_gameState->revertToParent, 0);
+		currentGame->execute_move(POKER_FACE, child_gameState->revertToParent);
 	}
 	currentState->score = v;
 	return v;
@@ -1674,7 +1665,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			if (counter++ > MAX_LIMIT * currentState->childState.size())
 				break;
 			revertToParent = gameState_ptr->revertToParent;
-			currentGame->execute_move(OPPONENT, gameState_ptr->selfState, 0);
+			currentGame->execute_move(OPPONENT, gameState_ptr->selfState);
 			double maxval = max_value_5(gameState_ptr, currentGame, depth + 1, alpha, beta);
 			if (maxval < v)
 				v = maxval;
@@ -1682,12 +1673,12 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 			{
 				prune_counter++;
 				currentState->score = v;
-				currentGame->execute_move(OPPONENT, revertToParent, 0);
+				currentGame->execute_move(OPPONENT, revertToParent);
 				return v;
 			}
 			if (v < beta)
 				beta = v;
-			currentGame->execute_move(OPPONENT, revertToParent, 0);
+			currentGame->execute_move(OPPONENT, revertToParent);
 		}
 		currentState->score = v;
 		return v;
@@ -1696,7 +1687,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	/* Generate children */
 	int child_depth = depth + 1;
 	vector<pair<int, int>> five_coordinates;
-	assert(depth % 2 == 1);		  //max_value_5() can only be called for a MaxNode
+	//assert(depth % 2 == 1);		  //max_value_5() can only be called for a MaxNode
 	for (int i = 0; i < m_f; i++) //iterate over all rings potentially
 	{
 		if (!currentGame->whitering_location_map.count(i))
@@ -1723,7 +1714,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						struct gameState *inner_child = new struct gameState;
 						pair<int, int> ring_loc = currentGame->whitering_location_map[k];
 						int ring_id = currentGame->board_state[ring_loc.first + n_f][ring_loc.second + n_f];
-						assert(ring_id >= 0 && ring_id <= m_f - 1);
+						//assert(ring_id >= 0 && ring_id <= m_f - 1);
 						string local_generate_action = generate_action_string + currentGame->execute_findfive_ring(OPPONENT, five_coordinates, ring_loc);
 						inner_child->selfState = local_generate_action;
 						currentState->childState.push_back(inner_child);
@@ -1747,7 +1738,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 						*/
 						//back from Recursion : undo moves made to currentGame
 						string temp = currentGame->undo_execute_findfive_ring(OPPONENT, five_coordinates, ring_loc, ring_id);
-						assert(temp.size() > 2);
+						//assert(temp.size() > 2);
 						revert_action_string = temp + revert_action_string_default;
 						inner_child->revertToParent = revert_action_string;
 					}
@@ -1791,7 +1782,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	{
 		if (counter++ > MAX_LIMIT * currentState->childState.size())
 			break;
-		currentGame->execute_move(OPPONENT, child_gameState->selfState, 0);
+		currentGame->execute_move(OPPONENT, child_gameState->selfState);
 		double maxval = max_value_5(child_gameState, currentGame, child_depth, alpha, beta);
 		if (maxval < v)
 			v = maxval;
@@ -1799,12 +1790,12 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 		{
 			prune_counter++;
 			currentState->score = v;
-			currentGame->execute_move(OPPONENT, child_gameState->revertToParent, 0);
+			currentGame->execute_move(OPPONENT, child_gameState->revertToParent);
 			return v;
 		}
 		if (v < beta)
 			beta = v;
-		currentGame->execute_move(OPPONENT, child_gameState->revertToParent, 0);
+		currentGame->execute_move(OPPONENT, child_gameState->revertToParent);
 	}
 	currentState->score = v;
 	return v;

@@ -44,8 +44,7 @@ int main(int argc, char** argv)
 		getline(cin,move);
 		clock_t us_begin_time = clock();
 		
-		double zero = 0;
-		game_one->execute_move(-1, move, zero);
+		game_one->execute_move(-1, move);
 		while (true) 
 		{	//cout << "P 1 0" << endl;
 			//string our_move = game_one->generate_random_move(1);
@@ -59,7 +58,7 @@ int main(int argc, char** argv)
 			us_begin_time = clock();
 		//	double opponent_time_spent = double(us_begin_time - opp_begin_time)/CLOCKS_PER_SEC; 
 			cerr<<"move received:"<<move<<"\n";
-			game_one->execute_move(-1, move, 0);
+			game_one->execute_move(-1, move);
 		}
 	}
 	else if (player_id == 1) 
@@ -71,7 +70,7 @@ int main(int argc, char** argv)
 			string our_move = game_one->generate_minimax1_move(POKER_FACE);
 			cout<< our_move<<endl;
 			getline(cin, move);
-			game_one->execute_move(-1,move,0);
+			game_one->execute_move(-1,move);
 		}
 	}
 	return 0;

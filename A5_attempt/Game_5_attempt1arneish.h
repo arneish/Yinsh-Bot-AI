@@ -75,7 +75,7 @@ public:
 	pair<int,int> find_x(int);
 	vector<pair<int, int>>* compute_all_moves_ring(pair<int, int>); //new coordinate
 	void compute_all_moves(int); //new coordinate
-	void execute_move(int, string, double); //new coordinate
+	void execute_move(int, string); //new coordinate
 	string freeloc_ring_init(int); 
 	string generate_random_move(int);
 	string generate_minimax1_move(int); 
