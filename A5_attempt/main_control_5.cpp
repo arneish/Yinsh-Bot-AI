@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int n_f, k_f, m_f, time_limit;
+int n_f, k_f, m_f, time_limit, time_remaining;
 // Sample C++ Code 
 int main(int argc, char** argv) 
 {
@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 	string move;
 	// Get input from server about game specifications
 	cin >> player_id >> n_f >> time_limit >> k_f;
+	time_remaining = time_limit;
 	if (n_f==5)
 	{
 		m_f = 5;
