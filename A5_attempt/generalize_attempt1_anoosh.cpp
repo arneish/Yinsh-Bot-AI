@@ -1352,48 +1352,27 @@ void Game::move_removering(const int &player, pair<int, int> location)
 
 double Game::get_score()
 {
-
-	if(k_f==5){
-		//original scoring function:
+	//original scoring function:
 	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
 	//new scoring function:
-	if (this->rings_onboard_white == 2)
-		score -= 100000;
+	double score_t=0;
+	if (this->rings_onboard_white == m_f-3)
+		score_t -= 100000;
 	pair<int, int> fours, triples, pairs;
 	fours = find_x(4);
 	triples = find_x(3);
-	//fives = find_x(5);
 	pairs = find_x(2);
-	double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (9 + 3) + (triples.second - triples.first) * (27 + 9 + 3) + (fours.second - fours.first) * (243 + 81 + 27 + 9 + 3) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ + (rings_onboard_white - rings_onboard_black) * 5000;
+	score_t += blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (9 + 3) + (triples.second - triples.first) * (27 + 9 + 3) + (fours.second - fours.first) * (243 + 81 + 27 + 9 + 3) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ + (rings_onboard_white - rings_onboard_black) * 5000;
 	//double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (10) + (triples.second - triples.first) * (100) + (fours.second - fours.first) * (1000) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ + (rings_onboard_white) * 10000 - (rings_onboard_black) * 10000;
-	if (this->rings_onboard_black == 2)
+	if (this->rings_onboard_black == m_f-3)
 		score += 100000;
-	this->score = score;
-
-
+	if (k_f == 6)
+	{
+		pair<int, int> fives = find_x(5);
+		score_t += (fives.second-fives.first)*(729+243+81 + 27 + 9 + 3);
 	}
-
-	else{
-		//original scoring function:
-	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
-	//new scoring function:
-	if (this->rings_onboard_white == 2)
-		score -= 100000;
-	pair<int, int> fours, triples, pairs;
-	fours = find_x(4);
-	triples = find_x(3);
-	fives = find_x(5);
-	pairs = find_x(2);
-	double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (9 + 3) + (triples.second - triples.first) * (27 + 9 + 3) + (fours.second - fours.first) * (243 + 81 + 27 + 9 + 3) + (fives.second-fives.first)*(243+81 + 27 + 9 + 3) + (rings_onboard_white - rings_onboard_black) * 5000;
-	//double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (10) + (triples.second - triples.first) * (100) + (fours.second - fours.first) * (1000) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ + (rings_onboard_white) * 10000 - (rings_onboard_black) * 10000;
-	if (this->rings_onboard_black == 2)
-		score += 100000;
-	this->score = score;
-
-
-	}
-	
-	return score;
+	this->score = score_t;
+	return score_t;
 }
 
 string Game::generate_minimax1_move(int player)
