@@ -1,7 +1,6 @@
 /*
 IDEAS: END-GAME TERMINAL STATES? DETERMINE ON THE BASIS OF RINGS EXTRACTED -> END GAME == HIGH SCORE FOR WIN, LOW FOR LOSS
 GREEDY EXTRACTION OF LEVEL ONE NODES
-
 */
 
 #include <iostream>
@@ -18,21 +17,20 @@ GREEDY EXTRACTION OF LEVEL ONE NODES
 //#include "Game_5.h"
 #include "Game_5_attempt1arneish.h"
 
-#define MAX_DEPTH 8
-int global_depth=4;
-int POKER_FACE_ply=0;
+#define MAX_DEPTH_ALLOWED 8
+int MAX_DEPTH=8;
 
 #define MID_GAME_START 15
 #define END_GAME_START 25
 
+int global_depth=4;
+int POKER_FACE_ply=0;
+
 double MAX_LIMIT;
 int prune_counter=0;
-int my_ply_counter=0;
-
+int my_ply_counter=0;;;
 
 using namespace std;
-
-
 
 vector<string> split_string(string split_me)
 {
@@ -1372,13 +1370,13 @@ double Game::get_score()
 string Game::generate_minimax1_move(int player)
 {
 	/* Code modified for A-5 incorporating the new strategy */
+	clock_t begin_time = clock();
 	my_ply_counter++;
 	if (my_ply_counter<MID_GAME_START)
 		MAX_LIMIT=0.9;
 	else
 		MAX_LIMIT=0.75;
 	cerr<<"PLY COUNTER:"<<my_ply_counter<<" MAX_LIMIT:"<<MAX_LIMIT<<"\n";
-	clock_t begin_time = clock();
 	string move_string;
 	if (!InitFiveRing)
 	{ //place black rings randomly radially outward
@@ -1391,13 +1389,41 @@ string Game::generate_minimax1_move(int player)
 	move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
 
 	/*Iterative Deepening*/
+	if (time_remaining<5)
+	{
+		//depth-2 
+		global_depth = 2;
+		MAX_DEPTH = 3;
+	}
+	else if (time_remaining <10)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 4;
+	}
+	else if (time_remaining <15)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 5;
+	}
+	else if (time_remaining<20)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 6;
+	}
+	else
+	{
+		//NORMAL - PLAY ITERATIVE DEEPENING
+		global_depth = 1;
+		MAX_DEPTH = MAX_DEPTH_ALLOWED;
+	}
 	string best_result = "";
-	global_depth = 1;
+	//global_depth = 1;
 	double time_spent;
 	struct gameState *rootGameState = new struct gameState;
 	while (global_depth < MAX_DEPTH)
 	{
 		prune_counter=0;
+		cerr<<"MAX_DEPTH ALLOWED:"<<MAX_DEPTH<<"\n";
 		cerr<<"ID DEPTH: "<<global_depth<<" underway:";
 		rootGameState->selfState = "";
 		best_result = minimax_decision_5(rootGameState, this);
@@ -1408,13 +1434,13 @@ string Game::generate_minimax1_move(int player)
 		if (time_spent>1.0)
 			break;
 	}
-
 	this->execute_move(POKER_FACE, best_result, 0);
 	delete rootGameState;
 	move_string += best_result;
-	cerr << "\nDECISION TIME:" << (clock() - begin_time) / (double)(CLOCKS_PER_SEC) << "s"
-		 << " prune counter:"<<prune_counter<<"\n\n";
-	time_remaining_us = time_remaining_us - (float(clock() - begin_time) / CLOCKS_PER_SEC);
+	double time_taken = (clock() - begin_time) / (double)(CLOCKS_PER_SEC);
+	cerr<< "\nDECISION TIME:" <<time_taken<< "s"<<" prune counter:"<<prune_counter<<"\n";
+	time_remaining-=time_taken;
+	cerr<< "time remaining: "<<time_remaining<<"\n\n";
 	if (move_string=="")
 	{
 		cerr<<"nothing to return";

@@ -17,7 +17,7 @@ using namespace std;
 #define BLACK_MARKER -2
 #define EMPTY_SPACE -3
 
-extern int n_f, k_f, m_f, time_limit;
+extern int n_f, k_f, m_f, time_limit, time_remaining;
 //#define UNDO_MR_REMOVAL 'Z' //Undo Removal of 5 MARKERS in a row and asociated RING ("MR")
 
 vector<string> split_string(string);
