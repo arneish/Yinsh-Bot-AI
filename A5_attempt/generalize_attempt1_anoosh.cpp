@@ -29,10 +29,7 @@ double MAX_LIMIT;
 int prune_counter=0;
 int my_ply_counter=0;
 
-
 using namespace std;
-
-
 
 vector<string> split_string(string split_me)
 {

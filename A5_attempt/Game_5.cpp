@@ -1493,7 +1493,7 @@ double max_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (terminal_test(currentState, currentGame, depth))
 	{
 		currentState->score = currentGame->get_score();
-		return currentGame->get_score();
+		return currentState->score;
 	}
 	double v = -DBL_MAX;
 
@@ -1667,7 +1667,7 @@ double min_value_5(struct gameState *currentState, Game *currentGame, int depth,
 	if (terminal_test(currentState, currentGame, depth))
 	{
 		currentState->score = currentGame->get_score();
-		return currentGame->get_score();
+		return currentState->score;
 	}
 	double v = DBL_MAX;
 
