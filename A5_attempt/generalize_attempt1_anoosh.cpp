@@ -18,12 +18,14 @@ GREEDY EXTRACTION OF LEVEL ONE NODES
 //#include "Game_5.h"
 #include "Game_5_attempt1arneish.h"
 
-#define MAX_DEPTH 8
-int global_depth = 4;
-int POKER_FACE_ply = 0;
+#define MAX_DEPTH_ALLOWED 8
+int MAX_DEPTH = 8;
 
 #define MID_GAME_START 15
 #define END_GAME_START 25
+
+int global_depth = 4;
+int POKER_FACE_ply = 0;
 
 double MAX_LIMIT;
 int prune_counter = 0;
@@ -1058,7 +1060,7 @@ string Game::generate_random_move(int player)
 		{
 			//cerr<<counter++<<" "<<elem.first<<","<<elem.second<<"\n";
 		}
-		 pair<int, int> loc_end = (*all_moves[m_f + random_ring])[random_move];
+		pair<int, int> loc_end = (*all_moves[m_f + random_ring])[random_move];
 		//cerr << "loc_end:" << loc_end.first << " " << loc_end.second << "\n";
 		//cerr<<"board_state[to_string(loc_start)]:"<<board_state[to_string(loc_start.first)+'$'+to_string(loc_start.second)]<<"\n";
 		assert(board_state[loc_start.first + n_f][loc_start.second + n_f] >= m_f && board_state[loc_start.first + n_f][loc_start.second + n_f] <= (2 * m_f - 1));
@@ -1350,7 +1352,9 @@ void Game::move_removering(const int &player, pair<int, int> location)
 
 double Game::get_score()
 {
-	//original scoring function:
+
+	if(k_f==5){
+		//original scoring function:
 	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
 	//new scoring function:
 	if (this->rings_onboard_white == 2)
@@ -1365,19 +1369,43 @@ double Game::get_score()
 	if (this->rings_onboard_black == 2)
 		score += 100000;
 	this->score = score;
+
+
+	}
+
+	else{
+		//original scoring function:
+	//double score = blackmarker_number - whitemarker_number + 10 * ((5 - rings_onboard_black) - (5 - rings_onboard_white));
+	//new scoring function:
+	if (this->rings_onboard_white == 2)
+		score -= 100000;
+	pair<int, int> fours, triples, pairs;
+	fours = find_x(4);
+	triples = find_x(3);
+	fives = find_x(5);
+	pairs = find_x(2);
+	double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (9 + 3) + (triples.second - triples.first) * (27 + 9 + 3) + (fours.second - fours.first) * (243 + 81 + 27 + 9 + 3) + (fives.second-fives.first)*(243+81 + 27 + 9 + 3) + (rings_onboard_white - rings_onboard_black) * 5000;
+	//double score = blackmarker_number - whitemarker_number + (pairs.second - pairs.first) * (10) + (triples.second - triples.first) * (100) + (fours.second - fours.first) * (1000) /*+ (fives.second-fives.first)*(243+81 + 27 + 9 + 3)*/ + (rings_onboard_white) * 10000 - (rings_onboard_black) * 10000;
+	if (this->rings_onboard_black == 2)
+		score += 100000;
+	this->score = score;
+
+
+	}
+	
 	return score;
 }
 
 string Game::generate_minimax1_move(int player)
 {
 	/* Code modified for A-5 incorporating the new strategy */
+	clock_t begin_time = clock();
 	my_ply_counter++;
 	if (my_ply_counter < MID_GAME_START)
 		MAX_LIMIT = 0.9;
 	else
 		MAX_LIMIT = 0.75;
 	cerr << "PLY COUNTER:" << my_ply_counter << " MAX_LIMIT:" << MAX_LIMIT << "\n";
-	clock_t begin_time = clock();
 	string move_string;
 	if (!InitFiveRing)
 	{ //place black rings randomly radially outward
@@ -1390,17 +1418,44 @@ string Game::generate_minimax1_move(int player)
 	move_string += execute_find_five(player, result_coordinates); //in minimax, we are accepting this as definitely happening->resultant state would be the "parent"
 
 	/*Iterative Deepening*/
+	if (time_remaining < 5)
+	{
+		//depth-2
+		global_depth = 2;
+		MAX_DEPTH = 3;
+	}
+	else if (time_remaining < 10)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 4;
+	}
+	else if (time_remaining < 15)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 5;
+	}
+	else if (time_remaining < 20)
+	{
+		global_depth = 1;
+		MAX_DEPTH = 6;
+	}
+	else
+	{
+		//NORMAL - PLAY ITERATIVE DEEPENING
+		global_depth = 1;
+		MAX_DEPTH = MAX_DEPTH_ALLOWED;
+	}
 	string best_result = "";
-	global_depth = 1;
+	//global_depth = 1;
 	double time_spent;
 	struct gameState *rootGameState = new struct gameState;
-	while (global_depth < 3)
+	while (global_depth < MAX_DEPTH)
 	{
 		prune_counter = 0;
+		cerr << "MAX_DEPTH ALLOWED:" << MAX_DEPTH << "\n";
 		cerr << "ID DEPTH: " << global_depth << " underway:";
 		rootGameState->selfState = "";
 		best_result = minimax_decision_5(rootGameState, this);
-
 		global_depth++;
 		time_spent = (clock() - begin_time) / (double)(CLOCKS_PER_SEC);
 		cerr << "time spent:" << time_spent << "\n";
@@ -1408,13 +1463,14 @@ string Game::generate_minimax1_move(int player)
 		if (time_spent > 1.0)
 			break;
 	}
-
 	this->execute_move(POKER_FACE, best_result, 0);
 	delete rootGameState;
 	move_string += best_result;
-	cerr << "\nDECISION TIME:" << (clock() - begin_time) / (double)(CLOCKS_PER_SEC) << "s"
+	double time_taken = (clock() - begin_time) / (double)(CLOCKS_PER_SEC);
+	cerr << "\nDECISION TIME:" << time_taken << "s"
 		 << " prune counter:" << prune_counter << "\n\n";
-	time_remaining_us = time_remaining_us - (float(clock() - begin_time) / CLOCKS_PER_SEC);
+	time_remaining -= time_taken;
+	cerr << "time remaining: " << time_remaining << "\n\n";
 	if (move_string == "")
 	{
 		cerr << "nothing to return";
